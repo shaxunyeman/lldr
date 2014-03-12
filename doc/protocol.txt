@@ -1,0 +1,135 @@
+1 auth
+{
+	command:1 
+	eventid:id					
+	version:ver
+	username:value
+	password:value
+}
+	
+2 response of auth
+{
+	eventid:id
+	errorcode:code # 0 successful non-zeor failed					
+}
+
+3 post
+{
+	command:2 
+	eventid:id	
+	filename:value					
+	directory:value
+}
+
+4 response of post
+{
+	eventid:id
+	errorcode:code # the same to up					
+	filedescription:value
+}
+
+4 post data
+{
+	filedescription:value
+	begin:value
+	end:value
+	data:value
+}
+
+5 response of post data
+{
+	errorcode:code # the some to up
+}
+
+6 get
+{
+	command:3 
+	eventid:id	
+	filename:value
+}
+
+7 response of get
+{
+	eventid:id
+	errorcode:code # the same to up					
+	filedescription:value
+}
+
+8 push data from server after get
+{
+	filedescription:value
+	begin:value
+	end:value
+	data:value
+}
+
+
+9 create directory
+{
+	command:4 
+	eventid:id	
+	director:value					
+}
+
+10 response of create diretory
+{
+	eventid:id
+	errorcode:code					
+}
+
+11 delete directory
+{
+	command:5 
+	eventid:id	
+	director:value					
+}
+
+12 response  of delete directory
+		The same to 10
+
+13 modify director
+{
+	command:6 
+	eventid:id	
+	old:value
+	new:value
+}
+
+14 response of modify directory
+		The same to 10
+
+15 list director
+{
+	command:7 
+	eventid:id	
+}
+
+16 response of list director
+{
+	command:8 
+	eventid:id	
+	list:val1\nval2\n....\nvaln					
+}
+
+17 list files in director
+{
+	command:9
+	eventid:id					
+	directory:value					
+}
+
+18 response of list files
+{
+	command:10
+	evnetid:id
+	value:val1\nval2\n....\nvaln
+}
+
+19 logout
+{
+	command:11
+	eventid:id
+}
+
+20 response of logout
+		The same to 10
