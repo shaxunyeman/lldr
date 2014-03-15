@@ -10,8 +10,9 @@ if __name__ == '__main__':
   sock.send(packet)
 
   data = sock.recv(1024)
-#  i,RecvData = struct.unpack(Frm,data)
+  PackLen,EvenetId,Code = struct.unpack('!iii',data)
 
-#  print 'echo << ' , RecvData
+  print repr(data)
+  print 'Eventid = ',EvenetId,'code = ' , Code 
 
   sock.close()

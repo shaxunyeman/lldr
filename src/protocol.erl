@@ -1,7 +1,7 @@
 -module(protocol).
 -include("base.hrl").
 
--export([auth/1,binary_split/2]).
+-export([auth/1,response/2]).
 
 binary_split(B,C) ->
   binary_split(B,C,<<>>,[]).
@@ -22,3 +22,13 @@ auth(Binary) when is_binary(Binary) ->
 
   io:format("~p ~n",[Client#client.username]),                  
   Client.                  
+
+
+response(EventId,Ret) ->
+	Response = <<EventId:32,Ret:32>>,
+	Response.
+
+
+
+
+
