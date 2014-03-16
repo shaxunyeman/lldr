@@ -1,7 +1,7 @@
 1 auth
 {
-	command:1 
-	eventid:id					
+	command:auth 
+	id:id					
 	version:ver
 	username:value
 	password:value
@@ -9,22 +9,22 @@
 	
 2 response of auth
 {
-	eventid:id
-	errorcode:code # 0 successful non-zeor failed					
+	id:id
+	code:code # 0 successful non-zeor failed					
 }
 
 3 post
 {
-	command:2 
-	eventid:id	
+	command:post 
+	id:id	
 	filename:value					
 	directory:value
 }
 
 4 response of post
 {
-	eventid:id
-	errorcode:code # the same to up					
+	id:id
+	code:code # the same to up					
 	filedescription:value
 }
 
@@ -38,7 +38,8 @@
 
 5 response of post data
 {
-	errorcode:code # the some to up
+	filedescription:value
+	code:code # the some to up
 }
 
 6 get
