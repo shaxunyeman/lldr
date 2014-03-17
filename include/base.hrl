@@ -8,20 +8,29 @@
 		username,   %%
 		password}). %%
 
+-record(post,{
+				id,
+				filename,
+				directory}).
+
 %%
 %% Command
 %%
--define(AUTH,1).
--define(POST,2).
--define(GET,3).
+-define(AUTH,"auth").
+-define(POST,"post").
+-define(GET,"get").
 
+-define(ID,"id").
 -define(VERSION,"version").
 -define(USERNAME,"username").
 -define(PASSWORD,"password").
--define(ID,"id").
+-define(COMMAND,"command").
+-define(FILENAME,"filename").
+-define(DIR,"directory").
 
 %%
 %% response of code
 %%
+-define(OK,0).
 -define(SOCKET_ERROR,1).
 -define(PWD_INVALID,2).

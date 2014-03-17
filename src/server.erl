@@ -50,10 +50,10 @@ parse_binary(Binary,Status) ->
 			%<<_Command:32/integer,EventId:32/integer,Rest/binary>> = Binary,
 			%io:format("command = ~p,EventId = ~p,Rest = ~p ~n",[Command,EventId,Rest]),
 			{ok,EventId,Client} = protocol:auth(Binary),
-			case parse_protocol:auth(Client) of
+			case handle_protocol:auth(Client) of
 				ok ->
 					NewStatus = lists:keyreplace(auth,1,Status,{auth,true}),
-					Response = protocol:response(EventId,0),
+					Response = protocol:response(EventId,?OK),
 					io:format("response >> ~p ~n",[Response]),
 					{ok,Response,NewStatus};
 				{error,Any} ->
@@ -71,25 +71,23 @@ parse_binary(Binary,Status) ->
 %%				{error,Response,NewStatus}
 %%
 process_command(Binary,Status) -> 	
-	<<Command:32/integer,Rest/binary>> = Binary,
-	case Command of 
-		POST ->
-			handle_post(Rest,Status);
-		GET ->
-			handle_get(Rest,Status);
-		_ ->
-			io:format("process command [~p] ~n",[Command])
+	List = protocol:parse_binary(Binary),
+	case protocol:command(List) of
+		?POST ->
+			{ok,Post} = protocol:post(List),
+			handle_post(Post,Status)
 	end.
-
-
-handle_post(Binary,Status) ->
-	io:format("handle_get ~n").
-	%<<EventId:32/integer,Rest/binary>> = Binary,
 	
 
-
-handle_get(Binary,Status) ->
-	io:format("handle_get ~n").
+handle_post(#post{id = Id} = Post,Status) ->
+	case handle_protocol:post(Post) of
+		ok ->
+			Response = protocol:response(list_to_integer(Id),?OK),
+			{ok,Response,Status};
+		{error,Code} ->
+			Response = protocol:response(list_to_integer(Id),Code),
+			{error,Response,Status}
+	end.
 
 
 
