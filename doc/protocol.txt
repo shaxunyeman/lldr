@@ -17,6 +17,7 @@
 {
 	command:post 
 	id:id	
+	length:len
 	filename:value					
 	directory:value
 }
@@ -30,7 +31,9 @@
 
 4 post data
 {
+	command:postdata
 	filedescription:value
+	id:id
 	begin:value
 	end:value
 	data:value
@@ -38,8 +41,9 @@
 
 5 response of post data
 {
-	filedescription:value
+	id:id
 	code:code # the some to up
+	filedescription:value
 }
 
 6 get
