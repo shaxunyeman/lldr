@@ -10,8 +10,16 @@
 
 -record(post,{
 				id,
+				len,
 				filename,
 				directory}).
+
+-record(post_data,{
+		id,
+		description,
+		data_begin,
+		data_end,
+		value}).
 
 %%
 %% Command
@@ -27,6 +35,12 @@
 -define(COMMAND,"command").
 -define(FILENAME,"filename").
 -define(DIR,"directory").
+-define(DESC,"filedescription").
+-define(POSTDATA,"postdata").
+-define(POSTBEGIN,"begin").
+-define(POSTEND,"end").
+-define(POSTVALUE,"value").
+-define(POSTLENGTH,"length").
 
 %%
 %% response of code

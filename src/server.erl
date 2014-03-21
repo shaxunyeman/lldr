@@ -9,7 +9,7 @@
 start(Port) ->
 	{ok,LS} = gen_tcp:listen(Port,
 													[binary,
-													{packet,0},
+													{packet,4},
 													{active,false}]),
 	io:format("begining listen [~p] ~n",[Port]),
 	spawn(fun() -> accept(LS) end).
@@ -42,8 +42,8 @@ client(ClientSocket,Status) ->
 
 
 parse_binary(Binary,Status) ->
-	%io:format("recv: ~p ~n",[binary_to_list(Binary)]),
-	io:format("recv: ~p ~n",[Binary]),
+	io:format("recv: ~p ~n",[binary_to_list(Binary)]),
+	%io:format("recv: ~p ~n",[Binary]),
 	{auth,Value} = lists:keyfind(auth,1,Status),
 	case Value of
 		false ->
@@ -75,24 +75,44 @@ process_command(Binary,Status) ->
 	case protocol:command(List) of
 		?POST ->
 			{ok,Post} = protocol:post(List),
-			handle_post(Post,Status)
+			handle_post(Post,Status);
+		?POSTDATA ->
+			{ok,PostData} = protocol:post_data(List),
+			handle_post_data(PostData,Status)
 	end.
 	
 
-handle_post(#post{id = Id} = Post,Status) ->
+handle_post(#post{id = Id,len=L} = Post,Status) ->
 	case handle_protocol:post(Post) of
 		ok ->
-			Response = protocol:response(list_to_integer(Id),?OK),
-			{ok,Response,Status};
+			Response = protocol:post_response(list_to_integer(Id),?OK),
+			<<_EventId:32,_Code:32,Indetify/binary>> = Response,
+			%% {binary_to_list(Indetify),{Length,Recved_Count}} 
+			%% Length is total-size of the file
+			%% Recved_Count represents count of receve from socket 
+			{ok,Response,[{binary_to_list(Indetify),{L,0}}|Status]};
 		{error,Code} ->
 			Response = protocol:response(list_to_integer(Id),Code),
 			{error,Response,Status}
 	end.
 
-
-
-
-
+handle_post_data(#post_data{id=Id,description=Desc,value=V} = Data,Status) ->
+  case handle_protocol:post_data(Data) of
+	ok ->
+	  Response = protocol:post_data_response(list_to_integer(Id),?OK,Desc),
+	  {Desc,{Total,Count}} = lists:keyfind(Desc,1,Status),
+	  NewCount = Count + length(V),
+	  if 
+		Total > NewCount ->
+		  NewStatus = lists:keyreplace(Desc,1,Status,{Desc,{Total,NewCount}});
+		Total =:= NewCount ->
+		  NewStatus = lists:keydelete(Desc,1,Status)
+	  end,
+	  {ok,Response,NewStatus};
+	{error,Code} ->
+	  Response = protocol:response(list_to_integer(Id),Code),
+	  {error,Response,Status}
+  end.
 
 
 

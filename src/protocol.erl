@@ -5,8 +5,9 @@
 -define(CR,$\r).
 -define(ADDRCHR,$@).
 
--export([auth/1,response/2,binary_split/2]).
--export([parse_binary/1,command/1,post/1]).
+-export([auth/1,response/2,post_response/2,binary_split/2]).
+-export([parse_binary/1,command/1]).
+-export([post/1,post_data/1,post_data_response/3]).
 
 binary_split(B,C) ->
   binary_split(B,C,<<>>,[]).
@@ -19,7 +20,7 @@ binary_split(<<>>,_C,Value,ValueList) ->
   lists:reverse([Value|ValueList]).
   
 parse_binary(Binary) when is_binary(Binary) ->
-	List = binary_split(Binary,?ADDRCHR),
+	List = binary_split(Binary,?LF),
 	NewList = [ list_to_tuple(string:tokens(Y,":")) || Y <- [binary_to_list(X) || X <- List]],
 	NewList.
 
@@ -40,20 +41,66 @@ auth(Binary) when is_binary(Binary) ->
 	{ok,list_to_integer(Id),Client}.                  
 
 command(List) when is_list(List) ->
-	{?COMMAND,Command} = lists:keyfind(?COMMAND,1,List),
-	Command.
+	case lists:keyfind(?COMMAND,1,List) of
+	  {?COMMAND,Command} ->
+		  Command;
+	  false ->
+		  unknow  
+	end.
+
+	
 
 post(List) when is_list(List) ->
 	{?ID,Id} = lists:keyfind(?ID,1,List),
+	{?POSTLENGTH,Len} = lists:keyfind(?POSTLENGTH,1,List),
 	{?FILENAME,FileName} = lists:keyfind(?FILENAME,1,List),
 	{?DIR,Dir} = lists:keyfind(?DIR,1,List),
 	
-	Post = #post{id=Id,filename=FileName,directory=Dir},
+	Post = #post{id=Id,len=Len,filename=FileName,directory=Dir},
 	{ok,Post}.
+
+post_data(List) when is_list(List) ->
+  {?ID,Id} = lists:keyfind(?ID,1,List),
+  {?DESC,Description} = lists:keyfind(?DESC,1,List),
+  {?POSTBEGIN,Begin} = lists:keyfind(?POSTBEGIN,1,List),
+  {?POSTEND,End} = lists:keyfind(?POSTEND,1,List),
+  {?POSTVALUE,Value} = lists:keyfind(?POSTVALUE,1,List),
+  Post_Data = #post_data{id=Id,description=Description,
+						data_begin=Begin,data_end=End,value=Value},
+  {ok,Post_Data}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% response
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 response(EventId,Ret) ->
 	Response = <<EventId:32,Ret:32>>,
 	Response.
+
+	
+post_response(EventId,Code)	->
+	Indetify = list_to_binary("Indentify"),
+	Response = <<EventId:32,Code:32,Indetify/binary>>,
+	Response.
+
+
+
+post_data_response(EventId,Code,Desc) ->
+  BinDesc = list_to_binary(Desc),
+  Response = <<EventId:32,Code:32,BinDesc/binary>>,
+  Response.
+
+
+
+
+
+
+
+
+
+
 
 
 
