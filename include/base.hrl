@@ -1,4 +1,4 @@
-%%
+%3
 %%
 %%
 
@@ -20,6 +20,10 @@
 		data_begin,
 		data_end,
 		value}).
+
+-record(get,{
+        id,
+        filename}).
 
 %%
 %% Command

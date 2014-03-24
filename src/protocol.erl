@@ -8,6 +8,7 @@
 -export([auth/1,response/2,post_response/2,binary_split/2]).
 -export([parse_binary/1,command/1]).
 -export([post/1,post_data/1,post_data_response/3]).
+-export([get/1]).
 
 binary_split(B,C) ->
   binary_split(B,C,<<>>,[]).
@@ -69,6 +70,12 @@ post_data(List) when is_list(List) ->
 						data_begin=Begin,data_end=End,value=Value},
   {ok,Post_Data}.
 
+
+get(List) when is_list(List) ->
+  {?ID,Id} = lists:keyfind(?ID,1,List),
+  {?FILENAME,FileName} = lists:keyfind(?FILENAME,1,List),
+  Get = #get{id=Id,filename=FileName},
+  {ok,Get}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

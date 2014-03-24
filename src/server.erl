@@ -78,7 +78,12 @@ process_command(Binary,Status) ->
 			handle_post(Post,Status);
 		?POSTDATA ->
 			{ok,PostData} = protocol:post_data(List),
-			handle_post_data(PostData,Status)
+			handle_post_data(PostData,Status);
+		?GET ->
+			{ok,Get} = protocol:get(List),
+			handle_get(Get,Status);
+		Any ->
+			io:format("~p ~n",[Any])
 	end.
 	
 
@@ -115,6 +120,15 @@ handle_post_data(#post_data{id=Id,description=Desc,value=V} = Data,Status) ->
   end.
 
 
+handle_get(#get{id=Id,filename=FileName}=Get,Status) ->
+  case handle_protocol:get(Get) of
+	ok ->
+	  Response = protocol:response(list_to_integer(Id),?OK),
+	  {ok,Response,Status};
+	{error,Code} ->
+	  Response = protocol:response(list_to_integer(Id),Code),
+	  {error,Response,Status}
+  end.
 
 
 

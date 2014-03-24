@@ -31,6 +31,11 @@ def post_data(Indetify):
   Packet = packet(Data)
   return Packet
 
+def get():
+  Get = "command:get\nid:4\nfilename:test.txt\n"
+  Packet = packet(Get)
+  return Packet
+
 def main():
   sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   sock.connect(('localhost', 8001))
@@ -57,7 +62,14 @@ def main():
   Response = unpacket(data)
   print "post data response : " , Response
   
+  # handle get
+  Get_Data = get()
+  sock.send(Get_Data)
+  data = sock.recv(1024)
+  Response = unpacket(data)
+  print "get response :" , Response
 
+  #close
   sock.close()
 
 
