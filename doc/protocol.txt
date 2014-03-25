@@ -56,7 +56,7 @@
 7 response of get
 {
 	eventid:id
-	errorcode:code # the same to up					
+	errorcode:code # length of the file				
 	filedescription:value
 }
 

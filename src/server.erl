@@ -53,12 +53,14 @@ parse_binary(Binary,Status) ->
 			case handle_protocol:auth(Client) of
 				ok ->
 					NewStatus = lists:keyreplace(auth,1,Status,{auth,true}),
-					Response = protocol:response(EventId,?OK),
+					%%Response = protocol:response(EventId,?OK),
+					Response = response:ok(EventId),
 					io:format("response >> ~p ~n",[Response]),
 					{ok,Response,NewStatus};
 				{error,Any} ->
 					io:format("error [~p] ~n",[Any]),
-					Response = protocol:response(EventId,?SOCKET_ERROR),
+					%%Response = protocol:response(EventId,?SOCKET_ERROR),
+					Response = response:error(EventId,?SOCKET_ERROR),
 					{error,Response,Status}
 			end;
 		true ->
@@ -90,21 +92,25 @@ process_command(Binary,Status) ->
 handle_post(#post{id = Id,len=L} = Post,Status) ->
 	case handle_protocol:post(Post) of
 		ok ->
-			Response = protocol:post_response(list_to_integer(Id),?OK),
+			%%Response = protocol:post_response(list_to_integer(Id),?OK),
+			Response = response:okindentify(list_to_integer(Id),?OK,<<"indentify">>),
 			<<_EventId:32,_Code:32,Indetify/binary>> = Response,
+
 			%% {binary_to_list(Indetify),{Length,Recved_Count}} 
 			%% Length is total-size of the file
 			%% Recved_Count represents count of receve from socket 
 			{ok,Response,[{binary_to_list(Indetify),{L,0}}|Status]};
 		{error,Code} ->
-			Response = protocol:response(list_to_integer(Id),Code),
+			%%Response = protocol:response(list_to_integer(Id),Code),
+			Response = response:error(list_to_integer(Id),Code),
 			{error,Response,Status}
 	end.
 
 handle_post_data(#post_data{id=Id,description=Desc,value=V} = Data,Status) ->
   case handle_protocol:post_data(Data) of
 	ok ->
-	  Response = protocol:post_data_response(list_to_integer(Id),?OK,Desc),
+	  %%Response = protocol:post_data_response(list_to_integer(Id),?OK,list_to_binary(Desc)),
+	  Response = response:okindentify(list_to_integer(Id),?OK,list_to_binary(Desc)),
 	  {Desc,{Total,Count}} = lists:keyfind(Desc,1,Status),
 	  NewCount = Count + length(V),
 	  if 
@@ -115,21 +121,38 @@ handle_post_data(#post_data{id=Id,description=Desc,value=V} = Data,Status) ->
 	  end,
 	  {ok,Response,NewStatus};
 	{error,Code} ->
-	  Response = protocol:response(list_to_integer(Id),Code),
+	  %%Response = protocol:response(list_to_integer(Id),Code),
+	  Response = response:error(list_to_integer(Id),Code),
 	  {error,Response,Status}
   end.
 
 
-handle_get(#get{id=Id,filename=FileName}=Get,Status) ->
+handle_get(#get{id=Id,filename=_FileName}=Get,Status) ->
   case handle_protocol:get(Get) of
-	ok ->
-	  Response = protocol:response(list_to_integer(Id),?OK),
+  {ok,Length} ->
+	  %%Response = protocol:response(list_to_integer(Id),Length),
+	  Response = response:okindentify(list_to_integer(Id),Length,list_to_binary("indentify")),
 	  {ok,Response,Status};
+	  %%push_data_to_client(Status,Response);
 	{error,Code} ->
-	  Response = protocol:response(list_to_integer(Id),Code),
+	  %%Response = protocol:response(list_to_integer(Id),Code),
+	  Response = response:error(list_to_integer(Id),Code),
 	  {error,Response,Status}
   end.
 
+
+%push_data_to_client(Status,Response) ->  
+%  <<EventId:32,Length:32,Indentify/binary>> = Response,
+%  case lists:keyfind(socket,1,Status) of
+%	{socket,ClientFd} ->
+%	  Id = 1000,
+%	  Indentify = list_to_binary("push_data_indentify"),
+%	  Data = list_to_binary("liuguozhu"),
+%	  PushData = <<Id:32,Indentify/binary,0:32,8:32,Data/binary>>,
+%	  gen_tcp:send(ClientFd,PushData);
+%	false ->
+%	  io:format("push_data_to_client : not found socket ~n")
+%  end.
 
 
 

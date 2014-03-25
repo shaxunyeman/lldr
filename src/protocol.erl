@@ -5,9 +5,9 @@
 -define(CR,$\r).
 -define(ADDRCHR,$@).
 
--export([auth/1,response/2,post_response/2,binary_split/2]).
+-export([auth/1,binary_split/2]).
 -export([parse_binary/1,command/1]).
--export([post/1,post_data/1,post_data_response/3]).
+-export([post/1,post_data/1]).
 -export([get/1]).
 
 binary_split(B,C) ->
@@ -76,28 +76,6 @@ get(List) when is_list(List) ->
   {?FILENAME,FileName} = lists:keyfind(?FILENAME,1,List),
   Get = #get{id=Id,filename=FileName},
   {ok,Get}.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% response
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-response(EventId,Ret) ->
-	Response = <<EventId:32,Ret:32>>,
-	Response.
-
-	
-post_response(EventId,Code)	->
-	Indetify = list_to_binary("Indentify"),
-	Response = <<EventId:32,Code:32,Indetify/binary>>,
-	Response.
-
-
-
-post_data_response(EventId,Code,Desc) ->
-  BinDesc = list_to_binary(Desc),
-  Response = <<EventId:32,Code:32,BinDesc/binary>>,
-  Response.
 
 
 
