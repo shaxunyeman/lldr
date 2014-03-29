@@ -1,0 +1,1 @@
+ct_run -spec spec.spec -suite protocol_SUITE.erl
