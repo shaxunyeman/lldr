@@ -24,4 +24,5 @@ test_auth(_Config) ->
   test_auth_impl(AuthBin).
 
 test_auth_impl(Binary) when is_binary(Binary) ->
-  {ok,1,_Client} = protocol:auth(Binary).
+  {ok,1,_Client} = protocol:auth(Binary),
+  #client{type='pc',version="1.0.0",username="liuliu@eyou.net",password="12306"} = _Client.
