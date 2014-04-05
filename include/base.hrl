@@ -25,12 +25,42 @@
         id,
         filename}).
 
+-record(createdir,{
+		id,
+		directory}).
+
+-record(deletedir,{
+		id,
+		directory}).
+
+-record(modify,{
+		id,
+		old,
+		new}).
+
+-record(listdir,{
+		id,
+		directory}).
+
+-record(listfile,{
+		id,
+		directory}).
+
+
 %%
 %% Command
 %%
 -define(AUTH,"auth").
 -define(POST,"post").
+-define(POSTDATA,"postdata").
 -define(GET,"get").
+-define(MKDIR,"createdir").
+-define(DELDIR,"deletedir").
+-define(LISTDIR,"listdir").
+-define(LISTFILE,"listfile").
+-define(MODIFY,"modify").
+-define(LOGOUT,"logout").
+
 
 -define(ID,"id").
 -define(VERSION,"version").
@@ -40,11 +70,12 @@
 -define(FILENAME,"filename").
 -define(DIR,"directory").
 -define(DESC,"filedescription").
--define(POSTDATA,"postdata").
 -define(POSTBEGIN,"begin").
 -define(POSTEND,"end").
 -define(POSTVALUE,"value").
 -define(POSTLENGTH,"length").
+-define(MODIFYOLD,"old").
+-define(MODIFYNEW,"new").
 
 %%
 %% response of code

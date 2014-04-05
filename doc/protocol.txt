@@ -36,7 +36,7 @@
 	id:id
 	begin:value
 	end:value
-	data:value
+	value:value
 }
 
 5 response of post data
@@ -48,14 +48,14 @@
 
 6 get
 {
-	command:3 
-	eventid:id	
+	command:get 
+	id:id	
 	filename:value
 }
 
 7 response of get
 {
-	eventid:id
+	id:id
 	errorcode:code # length of the file				
 	filedescription:value
 }
@@ -71,9 +71,9 @@
 
 9 create directory
 {
-	command:4 
-	eventid:id	
-	director:value					
+	command:createdir
+	id:id	
+	directory:value					
 }
 
 10 response of create diretory
@@ -84,8 +84,8 @@
 
 11 delete directory
 {
-	command:5 
-	eventid:id	
+	command:deletedir 
+	id:id	
 	director:value					
 }
 
@@ -94,8 +94,8 @@
 
 13 modify director
 {
-	command:6 
-	eventid:id	
+	command:modify 
+	id:id	
 	old:value
 	new:value
 }
@@ -105,35 +105,35 @@
 
 15 list director
 {
-	command:7 
-	eventid:id	
+	command:listdir 
+	id:id	
+	directory:parentdir
 }
 
 16 response of list director
 {
 	command:8 
-	eventid:id	
+	id:id	
 	list:val1\nval2\n....\nvaln					
 }
 
 17 list files in director
 {
-	command:9
-	eventid:id					
+	command:listfile
+	id:id					
 	directory:value					
 }
 
 18 response of list files
 {
-	command:10
-	evnetid:id
+	id:id
 	value:val1\nval2\n....\nvaln
 }
 
 19 logout
 {
-	command:11
-	eventid:id
+	command:logout
+	id:id
 }
 
 20 response of logout

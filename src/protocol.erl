@@ -9,6 +9,11 @@
 -export([parse_binary/1,command/1]).
 -export([post/1,post_data/1]).
 -export([get/1]).
+-export([createdir/1,deletedir/1]).
+-export([modify/1]).
+-export([listdir/1,listfile/1]).
+-export([logout/1]).
+
 
 binary_split(B,C) ->
   binary_split(B,C,<<>>,[]).
@@ -77,17 +82,42 @@ get(List) when is_list(List) ->
   Get = #get{id=Id,filename=FileName},
   {ok,Get}.
 
+createdir(List) when is_list(List) ->
+  {?ID,Id} = lists:keyfind(?ID,1,List),
+  {?DIR,Dir} = lists:keyfind(?DIR,1,List),
+  Directory = #createdir{id=Id,directory=Dir},
+  {ok,Directory}.
+
+deletedir(List) when is_list(List) ->
+  {?ID,Id} = lists:keyfind(?ID,1,List),
+  {?DIR,Dir} = lists:keyfind(?DIR,1,List),
+  DeleteDir = #deletedir{id=Id,directory=Dir},
+  {ok,DeleteDir}.
 
 
+modify(List) when is_list(List) ->
+  {?ID,Id} = lists:keyfind(?ID,1,List),
+  {?MODIFYOLD,Old} = lists:keyfind(?MODIFYOLD,1,List),
+  {?MODIFYNEW,New} = lists:keyfind(?MODIFYNEW,1,List),
+  Modify = #modify{id=Id,old=Old,new=New},
+  {ok,Modify}.
+
+listdir(List) when is_list(List) ->
+  {?ID,Id} = lists:keyfind(?ID,1,List),
+  {?DIR,Dir} = lists:keyfind(?DIR,1,List),
+  ListDir = #listdir{id=Id,directory=Dir},
+  {ok,ListDir}.
+
+listfile(List) when is_list(List) ->
+  {?ID,Id} = lists:keyfind(?ID,1,List),
+  {?DIR,Dir} = lists:keyfind(?DIR,1,List),
+  ListFile = #listfile{id=Id,directory=Dir},
+  {ok,ListFile}.
 
 
-
-
-
-
-
-
-
+logout(List) when is_list(List) ->
+  {?ID,Id} = lists:keyfind(?ID,1,List),
+  {ok,list_to_integer(Id)}.
 
 
 
