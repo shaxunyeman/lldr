@@ -1,0 +1,18 @@
+-record(user,{
+	mail,			  %% email of user,this is uniqueue
+	sex,			  %% sex of user
+	name,			  %% name of user
+	path			  %% path of data that the user owns
+	}).
+
+-record(password,{
+	  mail,			  %% index of user
+	  string		  %% password of user
+	  }).
+
+-record(fileidx,{
+		idx,		  %% index of file
+		md5,		  %% md5 the file
+		name,		  %% name of file
+		path		  %% relative path. full path consist of relative path and name
+		}).
