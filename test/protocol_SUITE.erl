@@ -33,7 +33,7 @@ test_auth_impl(Binary) when is_binary(Binary) ->
   #client{type='pc',version="1.0.0",username="liuliu@eyou.net",password="12306"} = _Client.
 
 test_post(_Config) ->
-  Post = "command:post\nid:2\nlength:9\nfilename:test.log\ndirectory:/home/data\n",
+  Post = "command:post\nid:2\ncrc:1233dd\nlength:9\nfilename:test.log\ndirectory:/home/data\n",
   Request = protocol:parse_binary(list_to_binary(Post)),
   ?POST = protocol:command(Request),
   {ok,PostRequest} = protocol:post(Request),

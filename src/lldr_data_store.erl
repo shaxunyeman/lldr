@@ -25,7 +25,8 @@ start_data_store() ->
   end.
 
 stop() ->
-  mnesia:stop().
+  mnesia:stop(),
+  unregister(lldr_data_store).
 
 receive_record(Ref) ->
   receive

@@ -17,6 +17,7 @@
 {
 	command:post 
 	id:id	
+	crc:crc
 	length:len
 	filename:value					
 	directory:value

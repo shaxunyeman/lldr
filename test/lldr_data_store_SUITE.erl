@@ -16,16 +16,18 @@ all() ->
   test_get_user_path].
 
 init_per_suite(_Config) ->
-  case lldr_data_store:start() of 
-	true ->
-	  lldr_data_store:add_user(#user{mail="rlq@eyou.net",sex=0,name="rlq",path="/home/data/rlq"},"3w.com"),
-	  lldr_data_store:add_user(#user{mail="rlq2@eyou.net",sex=0,name="rlq2",path="/home/data/rlq2"},"3w.com"),
-	  lldr_data_store:add_user(#user{mail="rlq3@eyou.net",sex=0,name="rlq3",path="/home/data/rlq3"},"3w.com")
+  case whereis(lldr_data_store) of
+  	undefined ->
+  	  lldr_data_store:start() 
   end,
+  lldr_data_store:add_user(#user{mail="rlq@eyou.net",sex=0,name="rlq",path="/home/data/rlq"},"3w.com"),
+  lldr_data_store:add_user(#user{mail="rlq2@eyou.net",sex=0,name="rlq2",path="/home/data/rlq2"},"3w.com"),
+  lldr_data_store:add_user(#user{mail="rlq3@eyou.net",sex=0,name="rlq3",path="/home/data/rlq3"},"3w.com"),
   _Config.
 
 end_per_suite(_Config) ->
   lldr_data_store:stop().
+  %unregister(lldr_data_store).
 
 %%init_per_testcase(ets_test,_Config) ->
 %%  [{key,"liuliu"}|_Config];

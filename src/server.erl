@@ -56,7 +56,7 @@ parse_binary(Binary,Status) ->
 					%%Response = protocol:response(EventId,?OK),
 					Response = response:ok(EventId),
 					io:format("response >> ~p ~n",[Response]),
-					{ok,Response,NewStatus};
+					{ok,Response,[{client,Client}|NewStatus]};
 				{error,Any} ->
 					io:format("error [~p] ~n",[Any]),
 					%%Response = protocol:response(EventId,?SOCKET_ERROR),
@@ -91,15 +91,16 @@ process_command(Binary,Status) ->
 
 handle_post(#post{id = Id,len=L} = Post,Status) ->
 	case handle_protocol:post(Post) of
-		ok ->
+		{ok,{Indetify,{file,IoDevice}}} ->
 			%%Response = protocol:post_response(list_to_integer(Id),?OK),
-			Response = response:okindentify(list_to_integer(Id),?OK,<<"indentify">>),
-			<<_EventId:32,_Code:32,Indetify/binary>> = Response,
+			Response = response:okindentify(list_to_integer(Id),?OK,Indetify),
+			%% <<_EventId:32,_Code:32,Indetify/binary>> = Response,
 
 			%% {binary_to_list(Indetify),{Length,Recved_Count}} 
 			%% Length is total-size of the file
 			%% Recved_Count represents count of receve from socket 
-			{ok,Response,[{binary_to_list(Indetify),{L,0}}|Status]};
+			NewStatus = [{binary_to_list(Indetify),[{L,0},{file,IoDevice}]}|Status],
+			{ok,Response,NewStatus};
 		{error,Code} ->
 			%%Response = protocol:response(list_to_integer(Id),Code),
 			Response = response:error(list_to_integer(Id),Code),
@@ -107,15 +108,15 @@ handle_post(#post{id = Id,len=L} = Post,Status) ->
 	end.
 
 handle_post_data(#post_data{id=Id,description=Desc,value=V} = Data,Status) ->
-  case handle_protocol:post_data(Data) of
+  {Desc,[{Total,Count},{file,IoDevice}]} = lists:keyfind(Desc,1,Status),
+  case handle_protocol:post_data(IoDevice,Data) of
 	ok ->
 	  %%Response = protocol:post_data_response(list_to_integer(Id),?OK,list_to_binary(Desc)),
 	  Response = response:okindentify(list_to_integer(Id),?OK,list_to_binary(Desc)),
-	  {Desc,{Total,Count}} = lists:keyfind(Desc,1,Status),
 	  NewCount = Count + length(V),
 	  if 
 		Total > NewCount ->
-		  NewStatus = lists:keyreplace(Desc,1,Status,{Desc,{Total,NewCount}});
+		  NewStatus = lists:keyreplace(Desc,1,Status,{Desc,[{Total,NewCount},{file,IoDevice}]});
 		Total =:= NewCount ->
 		  NewStatus = lists:keydelete(Desc,1,Status)
 	  end,

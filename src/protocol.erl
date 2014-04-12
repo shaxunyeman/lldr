@@ -58,11 +58,12 @@ command(List) when is_list(List) ->
 
 post(List) when is_list(List) ->
 	{?ID,Id} = lists:keyfind(?ID,1,List),
+	{?CRC,Crc} = lists:keyfind(?CRC,1,List),
 	{?POSTLENGTH,Len} = lists:keyfind(?POSTLENGTH,1,List),
 	{?FILENAME,FileName} = lists:keyfind(?FILENAME,1,List),
 	{?DIR,Dir} = lists:keyfind(?DIR,1,List),
 	
-	Post = #post{id=Id,len=Len,filename=FileName,directory=Dir},
+	Post = #post{id=Id,crc=Crc,len=Len,filename=FileName,directory=Dir},
 	{ok,Post}.
 
 post_data(List) when is_list(List) ->

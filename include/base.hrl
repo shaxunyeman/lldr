@@ -10,6 +10,7 @@
 
 -record(post,{
 				id,
+				crc,
 				len,
 				filename,
 				directory}).
@@ -63,6 +64,7 @@
 
 
 -define(ID,"id").
+-define(CRC,"crc").
 -define(VERSION,"version").
 -define(USERNAME,"username").
 -define(PASSWORD,"password").

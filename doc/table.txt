@@ -12,7 +12,7 @@
 
 -record(fileidx,{
 		idx,		  %% index of file
-		md5,		  %% md5 the file
+		crc,		  %% crc the file
 		name,		  %% name of file
 		path		  %% relative path. full path consist of relative path and name
 		}).
