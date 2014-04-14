@@ -1,14 +1,13 @@
 -module(protocol).
 -include("base.hrl").
-
--define(LF,$\n).
--define(CR,$\r).
+-define(LF,$\n).  -define(CR,$\r).
 -define(ADDRCHR,$@).
 
 -export([auth/1,binary_split/2]).
 -export([parse_binary/1,command/1]).
 -export([post/1,post_data/1]).
 -export([get/1]).
+-export([push_data/1]).
 -export([createdir/1,deletedir/1]).
 -export([modify/1]).
 -export([listdir/1,listfile/1]).
@@ -42,6 +41,7 @@ auth(Binary) when is_binary(Binary) ->
 
 	Client = #client{type='pc',
 										version=Version,
+										mtu = 1496,
 										username=UserName,
 										password=PassWord},
 	{ok,list_to_integer(Id),Client}.                  
@@ -82,6 +82,15 @@ get(List) when is_list(List) ->
   {?FILENAME,FileName} = lists:keyfind(?FILENAME,1,List),
   Get = #get{id=Id,filename=FileName},
   {ok,Get}.
+
+push_data(List) when is_list(List) ->
+  io:format("~p ~n",[List]),
+  {?DESC,Desc} = lists:keyfind(?DESC,1,List),
+  {?POSTBEGIN,Begin} = lists:keyfind(?POSTBEGIN,1,List),
+  {?POSTEND,End} = lists:keyfind(?POSTEND,1,List),
+  {?POSTVALUE,Value} = lists:keyfind(?POSTVALUE,1,List),
+  PushData = #push_data{filedescription=Desc,data_begin=Begin,data_end=End,value=Value},
+  {ok,PushData}.
 
 createdir(List) when is_list(List) ->
   {?ID,Id} = lists:keyfind(?ID,1,List),

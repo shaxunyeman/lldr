@@ -5,6 +5,7 @@
 -record(client,{
     type,       %% type of client
 		version,    %% version of client
+		mtu = 1492,	%%   
 		username,   %%
 		password}). %%
 
@@ -25,6 +26,12 @@
 -record(get,{
         id,
         filename}).
+
+-record(push_data,{
+		filedescription,
+		data_begin,
+		data_end,
+		value}).
 
 -record(createdir,{
 		id,

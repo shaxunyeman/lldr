@@ -10,6 +10,8 @@
 
 -export([test_auth_ok/1,test_auth_failed/1,test_auth_user_not_exist/1]).
 -export([test_post/1,test_post_data/1]).
+-export([test_get_ok/1,test_get_file_not_exist/1]).
+-export([test_push_data/1]).
 
 init_per_suite(_Config) ->
   case whereis(lldr_data_store) of
@@ -26,7 +28,9 @@ end_per_suite(_Config) ->
 
 all() ->
   [test_auth_ok,test_auth_failed,test_auth_user_not_exist,
-  test_post,test_post_data].
+  test_post,test_post_data,
+  test_get_ok,test_get_file_not_exist,
+  test_push_data].
 
 test_auth_ok(_Config) ->
   Client = #client{type='pc',version='1.0.0',username="liuliu@eyou.net",password="12306"},
@@ -64,10 +68,28 @@ test_post_data(_Config) ->
   20 = FileInfo#file_info.size.
   
 
+test_get_ok(_Config) ->
+  Client = #client{type='pc',version='1.0.0',username="liuliu@eyou.net",password="12306"},
+  Get = #get{id="4",filename="doc/test_post_data.txt"},
+  {ok,{_,{size,20}}} = handle_protocol:get(Client,Get).
 
+test_get_file_not_exist(_Config) ->
+  Client = #client{type='pc',version='1.0.0',username="liuliu@eyou.net",password="12306"},
+  Get = #get{id="4",filename="doc/file_not_exits.txt"},
+  {error,Reason} = handle_protocol:get(Client,Get),
+  io:format("error : ~p ~n",[Reason]).
 
+handle_data(Data,Size) when is_binary(Data) and is_integer(Size) ->
+  io:format("Handle_Data ~p ~n",[binary_to_list(Data)]).
+  %List = protocol:parse_binary(Data),
+  %{ok,PushData} = protocol:push_data(List),
+  %io:format("~n~p",[PushData#push_data.value]).
 
-
+test_push_data(_Config) ->
+  Client = #client{type='pc',version='1.0.0',username="liuliu@eyou.net",password="12306"},
+  Get = #get{id="4",filename="doc/nginx.c"},
+  Indentify = term_to_binary(make_ref()),
+  handle_protocol:push_data(Client,Indentify,Get,{?MODULE,handle_data,[]}).
 
 
 

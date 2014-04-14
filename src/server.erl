@@ -129,10 +129,11 @@ handle_post_data(#post_data{id=Id,description=Desc,value=V} = Data,Status) ->
 
 
 handle_get(#get{id=Id,filename=_FileName}=Get,Status) ->
-  case handle_protocol:get(Get) of
-  {ok,Length} ->
+  {client,Client} = lists:keyfind(client,1,Status),
+  case handle_protocol:get(Client,Get) of
+	{ok,{Indentify,{size,Length}}} ->
 	  %%Response = protocol:response(list_to_integer(Id),Length),
-	  Response = response:okindentify(list_to_integer(Id),Length,list_to_binary("indentify")),
+	  Response = response:okindentify(list_to_integer(Id),Length,Indentify),
 	  {ok,Response,Status};
 	  %%push_data_to_client(Status,Response);
 	{error,Code} ->
