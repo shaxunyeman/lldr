@@ -35,6 +35,7 @@
 
 -record(createdir,{
 		id,
+		parent,
 		directory}).
 
 -record(deletedir,{
@@ -85,6 +86,7 @@
 -define(POSTLENGTH,"length").
 -define(MODIFYOLD,"old").
 -define(MODIFYNEW,"new").
+-define(PARENT,"parent").
 
 %%
 %% response of code
