@@ -1,5 +1,7 @@
 -module(protocol_SUITE).
 -include_lib("C:/Program Files/erl5.10.4/lib/common_test-1.7.4/include/ct.hrl").
+-include_lib("eunit/include/eunit.hrl").
+
 -include("../include/base.hrl").
 -compile(export_all).
 -export([all/0]).
@@ -24,35 +26,49 @@ all() -> [test_auth,test_post,test_post_data,test_get,
 %%  ok.
   
 test_auth(_Config) ->
-  Auth = "command:auth\nid:1\nversion:1.0.0\nusername:liuliu@eyou.net\npassword:12306\n",
-  AuthBin = list_to_binary(Auth),
+  AuthBin = <<"{\"command\":\"auth\",\"id\":1,\"version\":\"1.0.0\",\"username\":\"liuliu@eyou.net\",\"password\":\"12306\"}">>,
   test_auth_impl(AuthBin).
 
 test_auth_impl(Binary) when is_binary(Binary) ->
-  {ok,1,_Client} = protocol:auth(Binary),
-  #client{type='pc',version="1.0.0",username="liuliu@eyou.net",password="12306"} = _Client.
+  {ok,Fields} = lldr_protocol_json:parse(Binary),
+  ?assertEqual("auth",lldr_protocol_json:command(Fields)), 
+  io:format("~p ~n",[Fields]),
+  {ok,Client} = lldr_protocol_json:auth(Fields),
+  ?assertEqual("liuliu@eyou.net",Client#client.username),
+  ?assertEqual("12306",Client#client.password),
+  ?assertEqual("1.0.0",Client#client.version),
+  ?assertEqual(1,lldr_protocol_json:protocol_id(Fields)).
 
 test_post(_Config) ->
-  Post = "command:post\nid:2\ncrc:1233dd\nlength:9\nfilename:test.log\ndirectory:/home/data\n",
-  Request = protocol:parse_binary(list_to_binary(Post)),
-  ?POST = protocol:command(Request),
-  {ok,PostRequest} = protocol:post(Request),
-  #post{id="2",len="9",filename="test.log",directory="/home/data"} = PostRequest.
+  Post= <<"{\"command\":\"post\",\"id\":2,\"crc\":\"1233dd\",\"length\":9,\"filename\":\"test.log\",\"directory\":\"/home/data\"}">>,
+  {ok,Fields} = lldr_protocol_json:parse(Post),
+  ?assertEqual("post",lldr_protocol_json:command(Fields)),
+  {ok,PostRequest} = lldr_protocol_json:post(Fields),
+  ?assertEqual(2,lldr_protocol_json:protocol_id(Fields)),
+  ?assertEqual("1233dd",PostRequest#post.crc),
+  ?assertEqual(9,PostRequest#post.len),
+  ?assertEqual("test.log",PostRequest#post.filename),
+  ?assertEqual("/home/data",PostRequest#post.directory).
 
 test_post_data(_Config) ->
-  PostData = "command:postdata\nfiledescription:indentify\nid:3\nbegin:0\nend:8\nvalue:liuguozhu\n",
-  Request = protocol:parse_binary(list_to_binary(PostData)),
-  ?POSTDATA = protocol:command(Request),
-  {ok,PostDataReqeust} = protocol:post_data(Request),
-  #post_data{id="3",description="indentify",data_begin="0",data_end="8",value="liuguozhu"} = PostDataReqeust.
+  PostData = <<"{\"command\":\"postdata\",\"filedescription\":\"indentify\",\"id\":3,\"begin\":0,\"end\":8,\"value\":\"liuguozhu\"}">>,
+  {ok,Fields} = lldr_protocol_json:parse(PostData),
+  ?assertEqual(?POSTDATA,lldr_protocol_json:command(Fields)),
+  {ok,PostDataRequest} = lldr_protocol_json:post_data(Fields),
+  ?assertEqual("indentify",PostDataRequest#post_data.description),
+  ?assertEqual(3,PostDataRequest#post_data.id),
+  ?assertEqual(0,PostDataRequest#post_data.data_begin),
+  ?assertEqual(8,PostDataRequest#post_data.data_end),
+  ?assertEqual("liuguozhu",PostDataRequest#post_data.value).
 
 
 test_get(_Config) ->
-  Get = "command:get\nid:4\nfilename:/home/data/test.txt\n",
-  RequestGet = protocol:parse_binary(list_to_binary(Get)),
-  ?GET = protocol:command(RequestGet),
-  {ok,Request} = protocol:get(RequestGet),
-  #get{id="4",filename="/home/data/test.txt"} = Request.
+  Get = "{\"command\":\"get\",\"id\":4,\"filename\":\"/home/data/test.txt\"}",
+  {ok,Fields} = lldr_protocol_json:parse(Get),
+  ?assertEqual(?GET,lldr_protocol_json:command(Fields)),
+  {ok,Get} = lldr_protocol_json:get(Fields),
+  ?assertEqual(4,Get#get.id),
+  ?assertEqual("/home/data/test.txt",Get#get.filename),
 
 
 test_createdir(_Config) ->
