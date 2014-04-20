@@ -1,0 +1,170 @@
+1. auth
+{
+  "command":"auth",
+  "id":"Id",
+  "version":"1.0.0",
+  "username":"User",
+  "password":"PassWord"
+}
+  response
+{
+  "id":"Id",
+  "code":"Code"
+}
+
+2. post
+{
+  "command":"post",
+  "id":"Id",
+  "crc":"Crc",
+  "length":"Length",
+  "filename":"FileName",
+  "directory":"Directory",
+  %% option below
+  "begin":"Data_begin",
+  "end":"Data_end",
+  "data":"Data"
+}
+
+  response
+{
+  "id":"Id",
+  "code":"Code"
+  "filedescription":"FileIndentify",
+}
+
+
+3. post data
+{
+  "command":"postdata",
+  "filedescription":"FileIndentify",
+  "id":"Id",
+  "begin":"Data_begin",
+  "end":"Data_end",
+  "data":"Data"
+}
+
+  response
+{
+  "id":"Id",
+  "code":"Code"
+}
+
+4. get
+{
+  "command":"get",
+  "id":"Id",
+  "filename":"FileName"
+}
+
+  resopnse
+{
+  "id":"Id",
+  "code":"Code",
+  "filedescription":"FileIndentify"
+}
+
+5. push data from server
+{
+  "filedescription":"FileIndentify",
+  "begin":"Data_begin",
+  "end":"Data_end",
+  "data":"Data"
+}
+
+6. create directory
+{
+  "command":"createdir",
+  "id":"Id",
+  "parent":"Parent",
+  "directory":"Directory"
+}
+
+  response
+{
+  "id":"Id",
+  "code":"Code"
+}
+
+7. delete directory 
+{
+  "command":"deletedir",
+  "id":"Id",
+  "directory":"Direectory"
+}
+
+  response
+{
+  "id":"Id",
+  "code":"Code"
+}
+
+8. modify directory
+{
+  "command":"moddir",
+  "id":"Id",
+  "old":"Old",
+  "new":"New"
+}
+
+  response
+{
+  "id":"Id",
+  "code":"Code"
+}
+
+9. list directory
+{
+  "command":"listdir",
+  "id":"Id",
+  "directory":"ParentDir"
+}
+
+  response
+{
+  "id":"Id",
+  "code":"Code",
+  "list":[e1,..,en]
+}
+
+10. list file
+{
+  "command":"listfile",
+  "id":"Id",
+  "directory":"Directory"
+}
+
+  response
+{
+  "id":"Id",
+  "code":"Code",
+  "list":[e1,..,en]
+}
+
+11. logout
+{
+  "command":"logout",
+  "id":"Id"
+}
+
+  response
+{
+  "id":"Id",
+  "code":"Code",
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
