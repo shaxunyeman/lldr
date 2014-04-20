@@ -1,4 +1,5 @@
 -module(lldr_sup).
+-author("db.liu").
 -behaviour(supervisor).
 
 -include("typedef.hrl").
