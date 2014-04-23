@@ -1,6 +1,13 @@
 -module(build).
+-author("shaxunyeman@gmail.com").
 -export([start/0]).
 
 start() ->
-  ErlFile = [server,protocol,response,handle_protocol,lldr_data_store],
-  [compile:file(X,[{i,"../include"},{outdir,"../ebin"}])||X <- ErlFile].
+  case file:consult("./lldr_build.conf") of
+	{ok,BuildConf} ->
+	  {erlfiles,ErlFiles} = lists:keyfind(erlfiles,1,BuildConf),
+	  {compileopt,Opts} = lists:keyfind(compileopt,1,BuildConf),
+	  [compile:file(X,Opts)||X <- ErlFiles];
+	{error,Reason} ->
+	  {stop,Reason}
+  end.
