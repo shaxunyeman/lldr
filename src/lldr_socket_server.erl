@@ -1,5 +1,5 @@
 -module(lldr_socket_server).
--author("db.liu").
+-author("shaxunyeman@gmail.com").
 -behavior(gen_server).
 
 -export([start/3]).

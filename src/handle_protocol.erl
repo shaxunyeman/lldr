@@ -1,4 +1,5 @@
 -module(handle_protocol).
+-author("shaxunyeman@gmail.com").
 
 -include_lib("kernel/include/file.hrl").
 
@@ -6,7 +7,7 @@
 
 -export([auth/1,post/2,post_data/2]).
 -export([get/2]).
--export([push_data/4]).
+-export([push_data/5]).
 
 
 -type(client() :: #client{}).
@@ -65,9 +66,9 @@ post(Client,#post{id=Id,crc=_Crc,filename=FileName,directory=Dir}) ->
 	end.
 
 -spec(post_data/2 :: (iodevice(),post_data()) -> ok | {error,any()}).
-post_data(IoDevice,#post_data{id=_Id,data_begin=B,data_end=E,value=V}=_D) ->
-	io:format("Value = ~p [offset : ~p ~p]~n",[V,list_to_integer(B),list_to_integer(E)]),
-	file:pwrite(IoDevice,list_to_integer(B),V).
+post_data(IoDevice,#post_data{id=_Id,data_begin=B,data_end=E,value=V}=_D)  when is_integer(B) and is_integer(E) ->
+	io:format("Value = ~p [offset : ~p ~p]~n",[V,B,E]),
+	file:pwrite(IoDevice,B,V).
 
 %%
 %% successfull {ok,{ref(),{size,Length}}}
@@ -94,35 +95,37 @@ get(Client,#get{id=Id,filename=F}) ->
 		{error,Reason}
 	end.
 
--define(FIELDSIZE,length("filedescription:\nbegin:\nend:\ndata:\n")).	
+-define(FIELDSIZE,length("\"filedescription:\",\"begin:\",\"end:\",\"value:\"")).	
 
 %% -spec(push_data/3 :: (client(),binary(),get()) -> {ok,binary()}).	
-push_data(Client,Indentify,Get,{M,F,A}) when is_binary(Indentify) ->
+push_data(Client,Indentify,Get,Status,{M,F}) when is_binary(Indentify) ->
   io:format("push data from ~p ~n",[Get#get.filename]),
   {ok,DataPath} = lldr_data_store:get_user_data_path(Client#client.username),
   FullFileName = DataPath ++ Get#get.filename,
-  case file:open(FullFileName,[read,raw,binary]) of
+  {socket,OutPutIo} = lists:keyfind(socket,1,Status),
+  case file:open(FullFileName,[read]) of
 	{ok,IoDevice} ->
 	  %% 客户端与服务器之间最大传输单元
 	  %% 为什么减size(Indentify) - 13，因为数据有个数据头
-	  loop_read_file(IoDevice,0,Client#client.mtu - size(Indentify) - ?FIELDSIZE,Indentify,{M,F,A});
+	  loop_read_file(IoDevice,0,Client#client.mtu - size(Indentify) - ?FIELDSIZE,Indentify,OutPutIo,{M,F});
 	{error,Reason} ->
 	  io:format("file open error. [~p] ~n",[Reason])
   end.
 
-loop_read_file(IoDevice,Local,Nember,Indentify,{M,F,A}) when is_integer(Local) and is_integer(Nember) ->
+loop_read_file(IoDevice,Local,Nember,Indentify,OutPutIo,{M,F}) when is_integer(Local) and is_integer(Nember) ->
   case file:pread(IoDevice,Local,Nember) of
 	{ok,Data} ->
 	  Begin = Local,
 	  End = Local + Nember,
-	  Content = "filedescription:" ++ binary_to_list(Indentify) 
-				++ "\nbegin:" ++ integer_to_list(Begin)
-				++ "\nend:" ++ integer_to_list(End)
-				++ "\nvalue:" ++ binary_to_list(Data)
-				++ "\n",
-	  Bin = list_to_binary(Content),
-	  M:F(Bin,size(Bin)),
-	  loop_read_file(IoDevice,End,Nember,Indentify,{M,F,A});
+	  Content = {struct,[{"filedescription",binary_to_list(Indentify)},
+						{"begin",Begin},
+						{"end",End - 1},
+						{"value",Data}]},
+	  io:format("~p",[Content]),
+	  Term_to_Json = mochijson2:encode(Content),	 
+	  Bin = list_to_binary(Term_to_Json),
+	  M:F(Bin,OutPutIo),
+	  loop_read_file(IoDevice,End,Nember,Indentify,OutPutIo,{M,F});
 	eof ->
 	  eof;
 	{error,Reason} ->

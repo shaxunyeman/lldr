@@ -1,4 +1,5 @@
 -module(echo_server).
+-author("shaxunyeman@gmail.com").
 
 -export([start/1]).
 

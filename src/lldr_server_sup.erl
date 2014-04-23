@@ -1,5 +1,5 @@
 -module(lldr_server_sup).
--author("db.liu").
+-author("shaxunyeman@gmail.com").
 %% -behavior(gen_server).
 -behavior(supervisor).
 

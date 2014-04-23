@@ -1,4 +1,5 @@
 -module(response).
+-author("shaxunyeman@gmail.com").
 
 -export([ok/1,error/2]).
 -export([okindentify/3]).

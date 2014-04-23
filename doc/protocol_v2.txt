@@ -61,6 +61,8 @@
 {
   "id":"Id",
   "code":"Code",
+  "crc":"crc_code",
+  "length":"content-length",
   "filedescription":"FileIndentify"
 }
 
@@ -144,6 +146,7 @@
 11. logout
 {
   "command":"logout",
+  "type":"pc",	
   "id":"Id"
 }
 

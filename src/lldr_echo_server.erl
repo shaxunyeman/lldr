@@ -1,5 +1,5 @@
 -module(lldr_echo_server).
--author("db.liu").
+-author("shaxunyeman@gmail.com").
 
 -export([start/0]).
 -export([acceptor/1]).

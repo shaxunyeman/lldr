@@ -1,5 +1,5 @@
 -module(lldr_sup).
--author("db.liu").
+-author("shaxunyeman@gmail.com").
 -behaviour(supervisor).
 
 -include("typedef.hrl").

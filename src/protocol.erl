@@ -1,4 +1,6 @@
 -module(protocol).
+-author("shaxunyeman@gmail.com").
+
 -include("base.hrl").
 -define(LF,$\n).  -define(CR,$\r).
 -define(ADDRCHR,$@).

@@ -35,7 +35,6 @@
 
 -record(createdir,{
 		id,
-		parent,
 		directory}).
 
 -record(deletedir,{
@@ -55,6 +54,10 @@
 		id,
 		directory}).
 
+-record(logout,{
+		id,
+		type
+		}).
 
 %%
 %% Command
@@ -63,6 +66,7 @@
 -define(POST,"post").
 -define(POSTDATA,"postdata").
 -define(GET,"get").
+-define(TYPE,"type").
 -define(MKDIR,"createdir").
 -define(DELDIR,"deletedir").
 -define(LISTDIR,"listdir").

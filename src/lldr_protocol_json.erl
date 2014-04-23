@@ -1,5 +1,5 @@
 -module(lldr_protocol_json).
--author("db.liu").
+-author("shaxunyeman@gmail.com").
 
 -include("include/base.hrl").
 
@@ -24,6 +24,9 @@
 
 -define(MTU,1496).
 
+%%
+%% 
+%%
 -spec(parse/1 ::(binary() | string()) -> {ok,fields()} | {error,any()}).
 parse(ProtocolData) when is_binary(ProtocolData) or is_list(ProtocolData) ->
   case mochijson2:decode(ProtocolData) of
@@ -38,12 +41,38 @@ trans_key_value({Key,Value}) when is_binary(Key) and is_binary(Value) ->
   KeyStr = binary_to_list(Key),
   if 
 	(KeyStr =:= "begin")  or (KeyStr =:= "end") or (KeyStr =:= "id") ->
-	  {binary_to_list(Key),binary_to_integer(Value)};
+	  {KeyStr,binary_to_integer(Value)};
 	(KeyStr =/= "begin") and (KeyStr =/= "end") and (KeyStr =/= "id") ->
-	  {binary_to_list(Key),binary_to_list(Value)}
+	  {KeyStr,binary_to_list(Value)}
+  end;
+trans_key_value({Key,Value}) when is_binary(Key) and is_list(Value) ->
+  %%{binary_to_list(Key),Value};
+  KeyStr = binary_to_list(Key),
+  if 
+	(KeyStr =:= "begin")  or (KeyStr =:= "end") or (KeyStr =:= "id") ->
+	  {KeyStr,list_to_integer(Value)};
+	(KeyStr =/= "begin") and (KeyStr =/= "end") and (KeyStr =/= "id") ->
+	  {KeyStr,Value}
   end;
 trans_key_value({Key,Value}) when is_binary(Key) and is_integer(Value) ->
-  {binary_to_list(Key),Value}.
+  {binary_to_list(Key),Value};
+trans_key_value({Key,Value}) when is_list(Key) and is_integer(Value) ->
+  {Key,Value};
+trans_key_value({Key,Value}) when is_list(Key) and is_binary(Value) ->
+  if 
+	(Key =:= "begin")  or (Key =:= "end") or (Key =:= "id") ->
+	  {Key,binary_to_integer(Value)};
+	(Key =/= "begin") and (Key =/= "end") and (Key =/= "id") ->
+	  {Key,Value}
+  end;
+trans_key_value({Key,Value}) when is_list(Key) and is_list(Value) ->
+  %% {Key,Value};
+  if 
+	(Key =:= "begin")  or (Key =:= "end") or (Key =:= "id") ->
+	  {Key,list_to_integer(Value)};
+	(Key =/= "begin") and (Key =/= "end") and (Key =/= "id") ->
+	  {Key,Value}
+  end.
 
 -spec(command/1 :: (fields()) -> atom()).
 command(Fields) when is_list(Fields) ->
@@ -122,8 +151,8 @@ push_data(Fields) ->
 createdir(Fields) ->
   {?ID,Id} = lists:keyfind(?ID,1,Fields),
   {?DIR,Dir} = lists:keyfind(?DIR,1,Fields),
-  {?PARENT,Parent} = lists:keyfind(?PARENT,1,Fields),
-  Directory = #createdir{id=Id,parent=Parent,directory=Dir},
+  %%{?PARENT,Parent} = lists:keyfind(?PARENT,1,Fields),
+  Directory = #createdir{id=Id,directory=Dir},
   {ok,Directory}.
 
 -spec(deletedir/1 :: (fields()) -> {ok,deletedir()} | {error,any()}).
@@ -159,7 +188,9 @@ listfile(Fields) ->
 -spec(logout/1 :: (fields()) -> {ok,integer()} | {error,any()}).
 logout(Fields) ->
   {?ID,Id} = lists:keyfind(?ID,1,Fields),
-  {ok,Id}.
+  {?TYPE,Type} = lists:keyfind(?TYPE,1,Fields),
+  Logout = #logout{id=Id,type=Type},
+  {ok,Logout}.
 
 
 
