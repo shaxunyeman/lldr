@@ -2,7 +2,7 @@
 -author("shaxunyeman@gmail.com").
 -behaviour(supervisor).
 
--include("typedef.hrl").
+-include("include/typedef.hrl").
 
 -export([start_link/1,terminate_child/1,which_children/0]).
 -export([init/1]).
@@ -28,7 +28,8 @@ init(Config) ->
 	{file,ConfigFileName} ->
 	  case file:consult(ConfigFileName) of
 		{ok,[SupSpec]} ->
-		  io:format("SupSpec : ~p ~n",[SupSpec]),
+		  %%io:format("SupSpec : ~p ~n",[SupSpec]),
+		  error_logger:info_msg("~p:~p <~p> SupSpec : ~p ~n",[?MODULE,?LINE,self(),SupSpec]),
 		  {ok,SupSpec}
 	  end;
 	false ->

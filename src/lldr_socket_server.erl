@@ -37,7 +37,10 @@ start(RegisterName,Port,Acceptor) when is_integer(Port) ->
 init(ServerInfo) ->
   case gen_tcp:listen(ServerInfo#socket_server_info.port,?TCP_OPTIONS) of
 	{ok,ListenSocket} ->
-	  io:format("~p listen on ~p ~n",[ServerInfo#socket_server_info.servername,ServerInfo#socket_server_info.port]),
+	  %%io:format("~p listen on ~p ~n",[ServerInfo#socket_server_info.servername,ServerInfo#socket_server_info.port]),
+	  error_logger:info_msg("~p:~p <~p> ~p listen on ~p ~n",
+							[?MODULE,?LINE,self(),
+							ServerInfo#socket_server_info.servername,ServerInfo#socket_server_info.port]),
 	  NewServerInfo = ServerInfo#socket_server_info{listensocket=ListenSocket},
 	  {ok,socket_server_acceptor(NewServerInfo)};
 	{error,Reason} ->
@@ -45,7 +48,7 @@ init(ServerInfo) ->
   end.
   
 handle_cast({accept,_Pid},ServerInfo) ->
-  io:format("continue process socket_server_acceptor ~n"),
+  error_logger:info_msg("~p:~p <~p> continue process socket_server_acceptor ~n",[?MODULE,?LINE,self()]),
   {noreply,socket_server_acceptor(ServerInfo)}.
 
 socket_server_acceptor(#socket_server_info{servername=Name,acceptor=Acceptor,listensocket=ListenSocket}=ServerInfo) ->  
@@ -55,11 +58,14 @@ socket_server_acceptor(#socket_server_info{servername=Name,acceptor=Acceptor,lis
 socket_server_acceptor_loop({ServerName,ListenSocket,{Module,Fun}}) ->
   case gen_tcp:accept(ListenSocket) of
 	{ok,ClientSocket} ->
-	  io:format("A new client [~p] has conncted ~n",[ClientSocket]),
+	  {ok,{Address,Port}} = inet:peername(ClientSocket),
+	  error_logger:info_msg("~p:~p <~p> A new client [~p:~p] has conncted ~n",[?MODULE,?LINE,self(),Address,Port]),
 	  gen_server:cast(ServerName,{accept,self()}),
+	  error_logger:info_msg("~p:~p <~p> Invoke ~p:~p(~p) ~n",[?MODULE,?LINE,self(),Module,Fun,ClientSocket]),
 	  Module:Fun(ClientSocket);
 	{error,Reason} ->
-	  io:format("socket_server_acceptor_loop: gen_tcp:accept faile,reason is ~p ~n",[Reason]),
+	  %%io:format("socket_server_acceptor_loop: gen_tcp:accept faile,reason is ~p ~n",[Reason]),
+	  error_logger:error_msg("~p:~p <~p> socket_server_acceptor_loop: gen_tcp:accept faile,reason is ~p ~n",[?MODULE,?LINE,self(),Reason]),
 	  {stop,Reason}
   end.
 

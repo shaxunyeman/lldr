@@ -1,7 +1,7 @@
 -module(server).
 -author("db.liu").
 
--include("base.hrl").
+-include("include/typedef.hrl").
 
 -export([start/1]).
 

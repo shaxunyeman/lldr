@@ -7,28 +7,48 @@
 -compile(export_all).
 
 -export([all/0]).
--export([init_per_suite/1,end_per_suite/1]).
+-export([init_per_testcase/2,end_per_testcase/2]).
+%%-export([init_per_suite/1,end_per_suite/1]).
 
 -export([test_auth_ok/1,test_auth_failed/1,test_auth_user_not_exist/1]).
 -export([test_post/1,test_post_data/1]).
 -export([test_get_ok/1,test_get_file_not_exist/1]).
 -export([test_push_data/1]).
 
-init_per_suite(_Config) ->
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+init_data_store() ->
   case whereis(lldr_data_store) of
-	undefined ->
-	  lldr_data_store:start()
+  	undefined ->
+  	  lldr_data_store:start_link(); 
+	_Pid ->
+	  void
   end,
   User = #user{mail="liuliu@eyou.net",sex=1,name="liuliu",path="E:/work/lldr/data/liuliu@eyou.net/"},
   lldr_data_store:add_user(User,"12306"),
-  _Config.
+  ok.
 
-end_per_suite(_Config) ->
+uninit_data_store() ->
   lldr_data_store:stop().
-  %unregister(lldr_data_store).
+
+
+%init_per_suite(_Config) ->
+%  init_data_store(),
+%  _Config.
+
+%end_per_suite(_Config) ->
+%  uninit_data_store().
+
+init_per_testcase(_TestCase,_Config) ->
+  init_data_store(),
+  _Config.
+  
+end_per_testcase(_TestCase,_Config) ->
+  uninit_data_store().
 
 all() ->
-  [test_auth_ok,test_auth_failed,test_auth_user_not_exist,
+  %%[test_auth_ok,test_auth_failed,test_auth_user_not_exist,
+  [test_auth_ok,test_auth_failed,
   test_post,test_post_data,
   test_get_ok,test_get_file_not_exist,
   test_push_data].
@@ -55,7 +75,7 @@ test_auth_user_not_exist(_Config) ->
 test_post(_Config) ->
   Client = #client{type='pc',version='1.0.0',username="liuliu@eyou.net",password="12306"},
   Post = #post{id="2",crc="crc123",len="18",filename="test.txt",directory="doc"},
-  {ok,{_Indentify,{file,IoDevice}}} = handle_protocol:post(Client,Post),
+  {ok,{_Indentify,{file_fd,IoDevice},{file,_FullFileName}}} = handle_protocol:post(Client,Post),
   file:close(IoDevice),
   FileName = "E:/work/lldr/data/liuliu@eyou.net/doc/test.txt",
   true = filelib:is_file(FileName).
@@ -71,7 +91,7 @@ test_post_data(_Config) ->
   {ok,PostFields} = lldr_protocol_json:parse(PostBin),
   {ok,Post} = lldr_protocol_json:post(PostFields),
 
-  {ok,{_Indentify,{file,IoDevice}}} = handle_protocol:post(Client,Post),
+  {ok,{_Indentify,{file_fd,IoDevice},{file,_FullFileName}}} = handle_protocol:post(Client,Post),
 
   %% post_data
   PostDataBin = <<"{\"command\":\"postdata\",\"filedescription\":\"indentify\",\"id\":3,\"begin\":0,\"end\":9,\"value\":\"liuguozhu\n\"}">>,
@@ -98,11 +118,14 @@ test_get_ok(_Config) ->
   {ok,Client} = lldr_protocol_json:auth(ClientFields),
 
   %% Get = #get{id="4",filename="doc/test_post_data.txt"},
-  GetTerm = "{\"command\":\"get\",\"id\":4,\"filename\":\"doc/test_post_data.txt\"}",
+  GetTerm = "{\"command\":\"get\",\"id\":4,\"filename\":\"doc/IM.png\"}",
   {ok,GetFields} = lldr_protocol_json:parse(GetTerm),
   {ok,GetRequest} = lldr_protocol_json:get(GetFields),
 
-  {ok,{_,{size,20}}} = handle_protocol:get(Client,GetRequest).
+  %%{ok,{_,{size,20}}} = handle_protocol:get(Client,GetRequest).
+  {ok,Response} = handle_protocol:get(Client,GetRequest),
+  ?assertEqual({size,36126},lists:keyfind(size,1,Response)),
+  ?assertEqual({crc32,3562928172},lists:keyfind(crc32,1,Response)).
 
 test_get_file_not_exist(_Config) ->
   %% Client = #client{type='pc',version='1.0.0',username="liuliu@eyou.net",password="12306"},
@@ -144,9 +167,6 @@ test_push_data(_Config) ->
   State = [{socket,Fd}],
   handle_protocol:push_data(Client,Indentify,GetRequest,State,{?MODULE,handle_push_data}),
   file:close(Fd).
-
-
-
 
 
 

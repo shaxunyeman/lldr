@@ -1,5 +1,4 @@
-{alias,protocol,"./"}.
+{alias,lldr_test,"./"}.
 {logdir,"./logs/"}.
-
-{suites,protocol,all}.
+{suites,lldr_test,all}.
 

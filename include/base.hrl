@@ -59,9 +59,20 @@
 		type
 		}).
 
+-record(normal_response,{
+		id,
+		code
+		}).
+
+-record(post_response,{
+		id,
+		code,
+		filedescription}).
+
 %%
 %% Command
 %%
+-define(REG,"register").
 -define(AUTH,"auth").
 -define(POST,"post").
 -define(POSTDATA,"postdata").
@@ -73,9 +84,11 @@
 -define(LISTFILE,"listfile").
 -define(MODIFY,"modify").
 -define(LOGOUT,"logout").
+-define(UNKOWNCOMMAND,"unkowncommand").
 
 
 -define(ID,"id").
+-define(CODE,"code").
 -define(CRC,"crc").
 -define(VERSION,"version").
 -define(USERNAME,"username").
@@ -98,3 +111,11 @@
 -define(OK,0).
 -define(SOCKET_ERROR,1).
 -define(PWD_INVALID,2).
+-define(USER_NOT_EXIST,3).
+-define(FILE_NOT_EXIST,4).
+-define(MKDIR_ERROR,5).
+-define(DELDIR_ERROR,6).
+-define(LISTDIR_ERROR,7).
+-define(ERROR,10).
+-define(UNKOWN_ERROR,100).
+

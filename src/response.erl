@@ -4,7 +4,7 @@
 -export([ok/1,error/2]).
 -export([okindentify/3]).
 
--include("base.hrl").
+-include("include/typedef.hrl").
 
 ok(EventId) when is_integer(EventId) ->
   Ok = ?OK,

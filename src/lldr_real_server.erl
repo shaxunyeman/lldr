@@ -2,7 +2,7 @@
 -author("shaxunyeman@gmail.com").
 -behavior(gen_server).
 
--include("base.hrl").
+-include("include/typedef.hrl").
 
 -export([start_link/1]).
 -export([auth/2]).

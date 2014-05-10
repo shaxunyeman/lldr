@@ -1,5 +1,5 @@
 -module(protocol_SUITE).
--include_lib("C:/Program Files/erl5.10.4/lib/common_test-1.7.4/include/ct.hrl").
+-include_lib("common_test/include/ct.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 -include("../include/base.hrl").

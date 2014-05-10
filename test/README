@@ -1,1 +1,1 @@
-ct_run -pa ../ebin -spec spec.spec -suite protocol_SUITE.erl
+ct_run -pa ../ebin -spec spec.spec

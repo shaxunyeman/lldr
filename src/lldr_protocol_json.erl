@@ -1,26 +1,30 @@
 -module(lldr_protocol_json).
 -author("shaxunyeman@gmail.com").
 
--include("include/base.hrl").
+%%-include("include/base.hrl").
+-include("include/typedef.hrl").
 
 -export([parse/1]).
 -export([command/1,protocol_id/1]).
 -export([auth/1,post/1,post_data/1,get/1,push_data/1]).
 -export([createdir/1,deletedir/1,modifydir/1,listdir/1]).
 -export([listfile/1,logout/1]).
+-export([normal_response/1,post_response/1]).
 
--type(client() :: #client{}).
--type(post() :: #post{}).
--type(post_data() :: #post_data{}).
--type(push_data() :: #push_data{}).
--type(createdir() :: #createdir{}).
--type(deletedir() :: #deletedir{}).
--type(modifydir() :: #modify{}).
--type(listdir() :: #listdir{}).
--type(listfile() :: #listfile{}).
+%%-type(client() :: #client{}).
+%%-type(post() :: #post{}).
+%%-type(post_data() :: #post_data{}).
+%%-type(push_data() :: #push_data{}).
+%%-type(createdir() :: #createdir{}).
+%%-type(deletedir() :: #deletedir{}).
+%%-type(modifydir() :: #modify{}).
+%%-type(listdir() :: #listdir{}).
+%%-type(listfile() :: #listfile{}).
+%%-type(normal_response() :: #normal_response{}).
+%%-type(post_response() :: #post_response{}).
+%%-type(get() :: #get{}).
 
 -type(fields() :: [term()]).
--type(get() :: #get{}).
 
 -define(MTU,1496).
 
@@ -40,18 +44,18 @@ parse(ProtocolData) when is_binary(ProtocolData) or is_list(ProtocolData) ->
 trans_key_value({Key,Value}) when is_binary(Key) and is_binary(Value) ->
   KeyStr = binary_to_list(Key),
   if 
-	(KeyStr =:= "begin")  or (KeyStr =:= "end") or (KeyStr =:= "id") ->
+	(KeyStr =:= "begin")  or (KeyStr =:= "end") or (KeyStr =:= "id") or (KeyStr =:= "code") ->
 	  {KeyStr,binary_to_integer(Value)};
-	(KeyStr =/= "begin") and (KeyStr =/= "end") and (KeyStr =/= "id") ->
+	(KeyStr =/= "begin") and (KeyStr =/= "end") and (KeyStr =/= "id") and (KeyStr =/= "code") ->
 	  {KeyStr,binary_to_list(Value)}
   end;
 trans_key_value({Key,Value}) when is_binary(Key) and is_list(Value) ->
   %%{binary_to_list(Key),Value};
   KeyStr = binary_to_list(Key),
   if 
-	(KeyStr =:= "begin")  or (KeyStr =:= "end") or (KeyStr =:= "id") ->
+	(KeyStr =:= "begin")  or (KeyStr =:= "end") or (KeyStr =:= "id") or (KeyStr =:= "code")->
 	  {KeyStr,list_to_integer(Value)};
-	(KeyStr =/= "begin") and (KeyStr =/= "end") and (KeyStr =/= "id") ->
+	(KeyStr =/= "begin") and (KeyStr =/= "end") and (KeyStr =/= "id") and (KeyStr =/= "code")->
 	  {KeyStr,Value}
   end;
 trans_key_value({Key,Value}) when is_binary(Key) and is_integer(Value) ->
@@ -60,17 +64,17 @@ trans_key_value({Key,Value}) when is_list(Key) and is_integer(Value) ->
   {Key,Value};
 trans_key_value({Key,Value}) when is_list(Key) and is_binary(Value) ->
   if 
-	(Key =:= "begin")  or (Key =:= "end") or (Key =:= "id") ->
+	(Key =:= "begin")  or (Key =:= "end") or (Key =:= "id") or (Key =:= "code")->
 	  {Key,binary_to_integer(Value)};
-	(Key =/= "begin") and (Key =/= "end") and (Key =/= "id") ->
+	(Key =/= "begin") and (Key =/= "end") and (Key =/= "id") and (Key =/= "code")->
 	  {Key,Value}
   end;
 trans_key_value({Key,Value}) when is_list(Key) and is_list(Value) ->
   %% {Key,Value};
   if 
-	(Key =:= "begin")  or (Key =:= "end") or (Key =:= "id") ->
+	(Key =:= "begin")  or (Key =:= "end") or (Key =:= "id") or (Key =:= "code")->
 	  {Key,list_to_integer(Value)};
-	(Key =/= "begin") and (Key =/= "end") and (Key =/= "id") ->
+	(Key =/= "begin") and (Key =/= "end") and (Key =/= "id") and (Key =/= "code")->
 	  {Key,Value}
   end.
 
@@ -92,6 +96,21 @@ protocol_id(Fields) ->
 	  invalid
   end.
 
+-spec(normal_response/1 :: (fields()) -> {ok,normal_response()} | {error,any()}).
+normal_response(Fields) ->  
+  {?ID,Id} = lists:keyfind(?ID,1,Fields),
+  {?CODE,Code} = lists:keyfind(?CODE,1,Fields),
+  Response = #normal_response{id=Id,code=Code},
+  {ok,Response}.
+
+-spec(post_response/1 :: (fields()) -> {ok,post_response()} | {error,any()}).
+post_response(Fields) ->
+  {?ID,Id} = lists:keyfind(?ID,1,Fields),
+  {?CODE,Code} = lists:keyfind(?CODE,1,Fields),
+  {?DESC,FileIndentify} = lists:keyfind(?DESC,1,Fields),
+  Response = #post_response{id=Id,code=Code,filedescription=FileIndentify},
+  {ok,Response}.
+  
 -spec(auth/1 :: (fields()) -> {ok,client()} | {error,any()}).
 auth(Fields) ->
   {?VERSION,Version} = lists:keyfind(?VERSION,1,Fields),

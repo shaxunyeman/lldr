@@ -103,7 +103,7 @@
 
 8. modify directory
 {
-  "command":"moddir",
+  "command":"modify",
   "id":"Id",
   "old":"Old",
   "new":"New"
@@ -156,6 +156,13 @@
   "code":"Code",
 }
 
+12. register user
+{
+  "command":"register",
+  "id":id,
+  "mail":"email",
+  "passwd":"password"
+}
 
 
 
