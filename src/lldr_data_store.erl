@@ -10,6 +10,7 @@
 -export([handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 
 -export([start_link/0,stop/0]).
+-export([ensure_loaded/0]).
 -export([add_user/2,get_user/1]).
 -export([get_user_password/1,update_user_password/1]).
 -export([get_user_data_path/1]).
@@ -30,17 +31,10 @@ create_tables() ->
   mnesia:create_table(user,[{access_mode,read_write},{attributes,record_info(fields,user)}]),
   mnesia:create_table(password,[{access_mode,read_write},{attributes,record_info(fields,password)}]),
   ok.
-  
-start_data_store() ->
-  case mnesia:start() of
-	ok ->
-	  create_tables(), 
-	  loop();
-	{error,Reason} ->
-	  error_logger:error_msg("start data store failed,the reason is ~p ~n",[Reason]),
-	  {error,Reason}
-  end.
 
+ensure_loaded() ->
+  mnesia:wait_for_tables([user,password],?TIMEOUT).
+  
 stop() ->
   %%mnesia:stop(),
   %%unregister(lldr_data_store).
@@ -66,11 +60,14 @@ receive_ret_code(Ref) ->
 	{error,timeout}
   end.
 
-add_user(User,Password) when is_list(Password) ->
+add_user(User,Password) when is_record(User,user) and is_list(Password) ->
   Ref = erlang:make_ref(),
   %%lldr_data_store!{write,user,{self(),Ref},{User,Password}},
   gen_server:cast(lldr_data_store,{write,user,{self(),Ref},{User,Password}}),
-  receive_ret_code(Ref). 
+  receive_ret_code(Ref); 
+add_user(Mail,Password) when is_list(Mail) and is_list(Password) ->
+  User = #user{mail=Mail,sex=1,name=Mail,path=""},
+  add_user(User,Password).
 
 get_user(Mail) when is_list(Mail) ->
   Ref = erlang:make_ref(),
@@ -177,10 +174,10 @@ init(_Args) ->
   case mnesia:start() of
 	ok ->
 	  create_tables(),
-	  error_logger:info_msg("<~p> create tables ~n",[self()]),
+	  error_logger:info_msg("~p:~p <~p> create tables ~n",[?MODULE,?LINE,self()]),
 	  {ok,[]};
 	{error,Reason} ->
-	  error_logger:error_msg("start data store failed,the reason is ~p ~n",[Reason]),
+	  error_logger:error_msg("~p:~p <~p> start data store failed,the reason is ~p ~n",[?MODULE,?LINE,Reason]),
 	  {stop,Reason}
   end.
     
@@ -228,7 +225,6 @@ terminate(Reason,_State) ->
 
 code_change(_OldVsn,State,_Extra) ->
   {ok,State}.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% test case														  %%
