@@ -22,12 +22,12 @@ acceptor(ClientSocket,Status) ->
 		{error,closed} ->
 			%%io:format("A client [~p] has closed",[ClientSocket]),
 			{ok,{Address,Port}} = inet:peername(ClientSocket),
-			error_logger:info_report("A client [~p:~p] has closed",[Address,Port]),
+			error_logger:info_msg("~p:~p <~p> A client [~p:~p] has closed",[?MODULE,?LINE,self(),Address,Port]),
 			gen_tcp:close(ClientSocket);
 		Any ->
 			%% io:format("A client [~p] has occurs error,the reason is ~p ~n",[ClientSocket,Any]),
 			{ok,{Address,Port}} = inet:peername(ClientSocket),
-			error_logger:error_msg("A client [~p:~p] has occurs error,the reason is ~p ~n",[Address,Port,Any]),
+			error_logger:error_msg("~p:~p <~p> A client [~p:~p] has occurs error,the reason is ~p ~n",[?MODULE,?LINE,self(),Address,Port,Any]),
 			gen_tcp:close(ClientSocket)
 	end.
 

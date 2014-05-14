@@ -52,7 +52,8 @@ handle_cast({accept,_Pid},ServerInfo) ->
   {noreply,socket_server_acceptor(ServerInfo)}.
 
 socket_server_acceptor(#socket_server_info{servername=Name,acceptor=Acceptor,listensocket=ListenSocket}=ServerInfo) ->  
-  proc_lib:spawn(?MODULE,socket_server_acceptor_loop,[{Name,ListenSocket,Acceptor}]),
+  ClientPid = proc_lib:spawn(?MODULE,socket_server_acceptor_loop,[{Name,ListenSocket,Acceptor}]),
+  error_logger:info_msg("~p:~p <~p> Next client pid is ~p ~n",[?MODULE,?LINE,self(),ClientPid]),
   ServerInfo.
 
 socket_server_acceptor_loop({ServerName,ListenSocket,{Module,Fun}}) ->
