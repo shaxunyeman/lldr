@@ -21,3 +21,11 @@
 				  |				|
 				  |				|
 				echosrv	  lldr_handle_server	
+
+3. How to run lldr
+  3.1 erl -mnesia dir '"E:/work/lldr/mnesia/data"'
+  3.2. start application
+		application:start(lldr).
+
+4. How to stop application
+  application:stop(lldr).
