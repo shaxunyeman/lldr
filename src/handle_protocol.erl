@@ -28,7 +28,7 @@
 
 -spec(auth/1 :: (client()) -> ok | {error,any()}).
 auth(#client{type=T,version=V,username=U,password=P}) ->
-	io:format("Type=~p,version=~p,username=~p,password=~p ~n",[T,V,U,P]),
+	%%io:format("Type=~p,version=~p,username=~p,password=~p ~n",[T,V,U,P]),
 	case lldr_data_store:get_user(U) of
 	  {ok,_User} ->
 		case lldr_data_store:get_user_password(U) of
@@ -76,7 +76,7 @@ post(Client,#post{id=_Id,crc=_Crc,filename=FileName,directory=Dir}) ->
 
 -spec(post_data/2 :: (iodevice(),post_data()) -> ok | {error,any()}).
 post_data(IoDevice,#post_data{id=_Id,data_begin=B,data_end=E,value=V}=_D)  when is_integer(B) and is_integer(E) ->
-  io:format("Value = ~p [offset : ~p ~p]~n",[V,B,E]),
+  %error_logger:info_msg("~p:~p [offset : ~p ~p]~n",[?MODULE,?LINE,B,E]),
   file:pwrite(IoDevice,B,V).
 
 -spec(post_data_finish/1 :: (iodevice()) -> ok | {error,any()}).
@@ -89,10 +89,11 @@ post_data_finish(IoDevice) ->
 %%
 -spec(get/2 :: (client(),get()) -> {ok,term()} | {error,any()}).
 get(Client,#get{id=Id,filename=F}) ->
-	io:format("Get Id = ~p,FileName = ~p ~n",[Id,F]),
 	case lldr_data_store:get_user_data_path(Client#client.username) of
 	  {ok,DataPath} ->
-		FullFileName = DataPath ++ F,
+		%%FullFileName = DataPath ++ F,
+		File1 = string:concat(DataPath,"/"),
+		FullFileName = string:concat(File1,F), 
 		case filelib:is_file(FullFileName) of
 		  true ->
 			case file:read_file_info(FullFileName) of	
@@ -121,11 +122,12 @@ get(Client,#get{id=Id,filename=F}) ->
 push_data(Client,Indentify,Get,Status,{M,F}) when is_list(Indentify) ->
   push_data(Client,list_to_binary(Indentify),Get,Status,{M,F});
 push_data(Client,Indentify,Get,Status,{M,F}) when is_binary(Indentify) ->
-  %%io:format("push data from ~p ~n",[Get#get.filename]),
-  error_logger:info_msg("push data from ~p ~n",[Get#get.filename]),
+  %error_logger:info_msg("~p:~p push data from ~p ~n",[?MODULE,?LINE,Get#get.filename]),
   {ok,DataPath} = lldr_data_store:get_user_data_path(Client#client.username),
-  FullFileName = DataPath ++ Get#get.filename,
+  FileName = string:concat(DataPath,"/"),
+  FullFileName = string:concat(FileName,Get#get.filename),
   {socket,OutPutIo} = lists:keyfind(socket,1,Status),
+  %%error_logger:info_msg("~p:~p push data from ~p ~n",[?MODULE,?LINE,FullFileName]),
   case file:open(FullFileName,[read]) of
 	{ok,IoDevice} ->
 	  %% 客户端与服务器之间最大传输单元
@@ -150,6 +152,7 @@ loop_read_file(IoDevice,Local,Nember,Indentify,OutPutIo,{M,F}) when is_integer(L
 	  M:F(Bin,OutPutIo),
 	  loop_read_file(IoDevice,End,Nember,Indentify,OutPutIo,{M,F});
 	eof ->
+	  %%error_logger:info_msg("~p:~p push data from  eof ~n",[?MODULE,?LINE]),
 	  eof;
 	{error,Reason} ->
 	  error_logger:error_msg("~p : ~p read file error.The reason is [~p] ~n",[?MODULE,?LINE,Reason])
@@ -159,8 +162,16 @@ loop_read_file(IoDevice,Local,Nember,Indentify,OutPutIo,{M,F}) when is_integer(L
 createdir(Client,Directory) ->
   case lldr_data_store:get_user_data_path(Client#client.username) of
 	{ok,DataPath} ->
-	  NewPath = DataPath ++ Directory#createdir.directory,
-	  set_dir_by_path(NewPath),
+	  %%NewPath = DataPath ++ Directory#createdir.directory,
+	  case Directory#createdir.directory of
+		"./" ->
+		  NewPath = string:concat(DataPath,"/"),
+		  set_dir_by_path(NewPath);
+		AnyDir ->
+		  NewPath = string:concat(DataPath,"/"),
+		  NewPath2 = string:concat(NewPath,AnyDir),
+		  set_dir_by_path(NewPath2)
+	  end,
 	  ok;
 	{error,Reason} ->
 	  %%error_logger:error_msg("~p : ~p get path of user failed,the reason is ~p",[?MODULE,?LINE,Reason]),
@@ -169,7 +180,7 @@ createdir(Client,Directory) ->
 
 set_dir_by_path(Path) ->
   PathList = string:tokens(Path,"/"), 
-  io:format("~p~n",[PathList]),
+  %io:format("~p~n",[PathList]),
   set_dir_by_path(PathList,"").
 
 set_dir_by_path([],Dir) ->
@@ -219,6 +230,14 @@ modifydir(Client,ModifyDir) ->
 	  {error,Reason} 
   end.
 
+listdir(Path) ->
+  case file:list_dir_all(Path) of
+	{ok,FileNames} ->
+	  NewFileNames = [set_file_flag(Path,Item) || Item <- FileNames],
+	  {ok,NewFileNames};
+	{error,Reason} ->
+	  {error,Reason}
+  end.
 
 -type(filename_all() :: string() | binary()).
 -type(filenames() :: [filename_all()]).
@@ -227,14 +246,20 @@ listdir(Client,ListDir) ->
   case lldr_data_store:get_user_data_path(Client#client.username) of
 	{ok,DataPath} ->
 	  RootPath = string:concat(DataPath,"/"),
-	  Path = string:concat(RootPath,ListDir#listdir.directory),
-	  case file:list_dir_all(Path) of
-		{ok,FileNames} ->
-		  NewFileNames = [set_file_flag(Path,Item) || Item <- FileNames],
-		  {ok,NewFileNames};
-		{error,Reason} ->
-		  {error,Reason}
+	  case ListDir#listdir.directory of
+		"./" ->
+		  listdir(RootPath);
+		AnyDir ->
+		  Path = string:concat(RootPath,ListDir#listdir.directory),
+		  listdir(Path)
 	  end;
+	  %case file:list_dir_all(Path) of
+	  %	{ok,FileNames} ->
+	  %	  NewFileNames = [set_file_flag(Path,Item) || Item <- FileNames],
+	  %	  {ok,NewFileNames};
+	  %	{error,Reason} ->
+	  %	  {error,Reason}
+	  %end;
 	{error,Reason} ->
 	  {error,Reason}
   end.

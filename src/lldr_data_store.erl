@@ -28,8 +28,8 @@ start_link() ->
   gen_server:start_link({local,?MODULE},?MODULE,[],[]).
 
 create_tables() ->
-  mnesia:create_table(user,[{access_mode,read_write},{attributes,record_info(fields,user)}]),
-  mnesia:create_table(password,[{access_mode,read_write},{attributes,record_info(fields,password)}]),
+  mnesia:create_table(user,[{disc_copies, [node()]},{access_mode,read_write},{attributes,record_info(fields,user)}]),
+  mnesia:create_table(password,[{disc_copies, [node()]},{access_mode,read_write},{attributes,record_info(fields,password)}]),
   ok.
 
 ensure_loaded() ->
@@ -45,7 +45,7 @@ receive_record(Ref) ->
 	{ok,Ref,Record} ->
 	  {ok,Record};
 	{error,Ref,Reason} ->
-	  {ok,Reason}
+	  {error,Reason}
   after ?TIMEOUT ->
 	{error,timeout}
   end.
@@ -66,7 +66,10 @@ add_user(User,Password) when is_record(User,user) and is_list(Password) ->
   gen_server:cast(lldr_data_store,{write,user,{self(),Ref},{User,Password}}),
   receive_ret_code(Ref); 
 add_user(Mail,Password) when is_list(Mail) and is_list(Password) ->
-  User = #user{mail=Mail,sex=1,name=Mail,path=""},
+  RootPath = application:get_env(lldr,lldr_root_data_path,?LLDR_ROOT_PATH),
+  Temp = string:concat(RootPath,"/"),
+  UserRootPath = string:concat(Temp,Mail),
+  User = #user{mail=Mail,sex=1,name=Mail,path=UserRootPath},
   add_user(User,Password).
 
 get_user(Mail) when is_list(Mail) ->
@@ -121,16 +124,17 @@ write_user({Requestor,Ref},{User,Password}) ->
   					  end).
 
 read_user(Mail) ->
-  [User] = mnesia:read(user,Mail),
-  {ok,User}.
+  %%[User] = mnesia:read(user,Mail),
+  %%{ok,User}.
+  mnesia:read(user,Mail).
 
 read_user({Requestor,Ref},Mail) when is_list(Mail) ->  
   mnesia:transaction(fun() ->
   						case read_user(Mail) of
-  						  {ok,User} ->
+  						  User ->
   							Requestor!{ok,Ref,User};
-  						  {error,Reason} ->
-  							Requestor!{error,Ref,Reason}
+  						  'transaction abort' ->
+  							Requestor!{error,Ref,'transaction abort'}
   						end
   					  end).
 
@@ -171,6 +175,7 @@ user_data_path({Requestor,Ref},Mail) when is_list(Mail) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 init(_Args) ->
+  mnesia:create_schema([node()]),
   case mnesia:start() of
 	ok ->
 	  create_tables(),
@@ -184,7 +189,7 @@ init(_Args) ->
 handle_cast(Request,Status) ->
   case Request of
 	{write,user,{Requestor,Ref},{User,Password}} ->
-	  io:format("~p: ~p <~p> handle_cast: ~p~n",[?MODULE,?LINE,self(),Request]),
+	  %io:format("~p: ~p <~p> handle_cast: ~p~n",[?MODULE,?LINE,self(),Request]),
 	  write_user({Requestor,Ref},{User,Password});
 	{read,user,{Requestor,Ref},Mail} ->
 	  read_user({Requestor,Ref},Mail);

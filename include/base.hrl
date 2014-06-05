@@ -117,5 +117,6 @@
 -define(DELDIR_ERROR,6).
 -define(LISTDIR_ERROR,7).
 -define(ERROR,10).
+-define(UNIMPL_ERROR,99).
 -define(UNKOWN_ERROR,100).
 

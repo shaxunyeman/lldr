@@ -4,6 +4,7 @@
 -include("include/typedef.hrl").
 
 -export([parse_binary/2]).
+-export([handle_output/2]).
 
 parse_binary(Binary,Status) ->
   {auth,Value} = lists:keyfind(auth,1,Status),
@@ -50,7 +51,13 @@ handle_command(Binary,Status) ->
 			?POSTDATA ->
 			  handle_post_data(Client,Fields,Status);
 			?GET ->
-			  handle_get(Client,Fields,Status);
+			  case lists:keyfind(outputcb,1,Status) of
+				false ->
+				  NewStatus = [{outputcb,{?MODULE,handle_output}}|Status],
+				  handle_get(Client,Fields,NewStatus);
+				{outputcb,_} ->
+				  handle_get(Client,Fields,Status)
+			  end;
 			?MKDIR ->
 			  handle_createdir(Client,Fields,Status);
 			?DELDIR ->
@@ -59,6 +66,8 @@ handle_command(Binary,Status) ->
 			  handle_modifydir(Client,Fields,Status);
 			?LISTDIR ->
 			  handle_listdir(Client,Fields,Status);
+			?LISTFILE ->
+			  handle_listfile(Client,Fields,Status);
 			?LOGOUT ->
 			  handle_logout(Client,Fields,Status);
 			?UNKOWNCOMMAND ->
@@ -107,7 +116,7 @@ handle_post_data(Client,#post_data{id=EventId,description=Indentify,data_begin=D
 			  if 
 				CurSize =:= 0 ->
 				  {file,FileName} = lists:keyfind(file,1,Value),
-				  error_logger:info_msg("~p:~n The file [~p] will begin receive ~n",[?MODULE,?LINE,FileName]);
+				  error_logger:info_msg("~p:~p The file [~p] will begin receive ~n",[?MODULE,?LINE,FileName]);
 				CurSize > 0 ->
 				  void
 			  end,
@@ -127,7 +136,7 @@ handle_post_data(Client,#post_data{id=EventId,description=Indentify,data_begin=D
 				  NewStatus = lists:keydelete(Indentify,1,Status),
 				  %%EventId = lldr_protocol_json:protocol_id(Fields),
 				  Response = lldr_response:code(EventId,?OK),
-				  error_logger:info_msg("~p:~n The file [~p] has posted ~n",[?MODULE,?LINE,FullFileName]),
+				  error_logger:info_msg("~p:~p The file [~p] has posted ~n",[?MODULE,?LINE,FullFileName]),
 				  {ok,Response,NewStatus}
 			  end;
 			{error,Reason} ->
@@ -187,6 +196,9 @@ handle_post_data(Client,Fields,Status) ->
 %%	  error_logger:error_msg("~p:~p keyfind filedescription failed ~n",[?MODULE,?LINE])
 %%  end.
 
+handle_output(Data,Socket) ->
+  gen_tcp:send(Socket,Data).
+
 handle_get(Client,Fields,Status) ->
   {ok,Get} = lldr_protocol_json:get(Fields),  
   EventId = Get#get.id,
@@ -198,17 +210,20 @@ handle_get(Client,Fields,Status) ->
 			Response = lldr_response:code(EventId,?OK,GetResponse), 
 			M:F(Response,Socket),
 			{filedescription,Desc} = lists:keyfind(filedescription,1,GetResponse),
-			handle_protocol:push_data(Client,Desc,Get,Status,{M,F});
+			handle_protocol:push_data(Client,Desc,Get,Status,{M,F}),
+			Response2 = lldr_response:code(EventId,?OK),
+			{ok,Response2,Status};
 		false ->
 		  Response = lldr_response:code(EventId,?UNKOWN_ERROR), 
-		  {ok,Response,Status}
+		  error_logger:error_msg("~p:~p System can't install outputcb",[?MODULE,?LINE]),
+		  {error,Response,Status}
 	  end;
 	{error,'file not exist'} ->
-	  error_logger:error_msg("~p : ~p handle get failed,the reason is file not exist",[?MODULE,?LINE]),
+	  error_logger:error_msg("~p:~p handle get failed,the reason is file not exist",[?MODULE,?LINE]),
 	  Response = lldr_response:code(EventId,?FILE_NOT_EXIST),
 	  {error,Response,Status};
 	{error,Reason} ->
-	  error_logger:error_msg("~p : ~p handle get failed,the reason is ~p",[?MODULE,?LINE,Reason]),
+	  error_logger:error_msg("~p:~p handle get failed,the reason is ~p",[?MODULE,?LINE,Reason]),
 	  Response = lldr_response:code(EventId,?UNKOWN_ERROR),
 	  {error,Response,Status}
   end.
@@ -267,6 +282,12 @@ handle_listdir(Client,Fields,Status) ->
 	  {error,Response,Status}
   end.
 
+
+handle_listfile(Client,Fields,Status) ->
+  {?ID,EventId} = lists:keyfind(?ID,1,Fields),
+  Response = lldr_response:code(EventId,?UNIMPL_ERROR),
+  {ok,Response,Status}.
+
 handle_logout(Client,Fields,Status) ->
   {ok,LogOut} = lldr_protocol_json:logout(Fields),
   EventId = LogOut#logout.id,
@@ -275,7 +296,6 @@ handle_logout(Client,Fields,Status) ->
   NewStatus = lists:keydelete(client,1,Status),
   %%NewStatus2 = lists:keydelete(socket,1,NewStatus1),
   {ok,Response,NewStatus}.  
-
 
 
 

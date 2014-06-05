@@ -10,8 +10,10 @@ acceptor(ClientSocket) ->
 	acceptor(ClientSocket,Status).
 
 acceptor(ClientSocket,Status) ->
+	%%error_logger:info_msg("~p:~p <~p> ~n",[?MODULE,?LINE,self()]),
 	case gen_tcp:recv(ClientSocket,0) of
 		{ok,Binary} ->
+			%%error_logger:info_msg("~p:~p <~p> ~p ~n",[?MODULE,?LINE,self(),Binary]),
 			case parse_binary(Binary,Status) of
 				{ok,Response,NewStatus} ->
 					gen_tcp:send(ClientSocket,Response);
@@ -21,8 +23,9 @@ acceptor(ClientSocket,Status) ->
 			acceptor(ClientSocket,NewStatus);
 		{error,closed} ->
 			%%io:format("A client [~p] has closed",[ClientSocket]),
-			{ok,{Address,Port}} = inet:peername(ClientSocket),
-			error_logger:info_msg("~p:~p <~p> A client [~p:~p] has closed",[?MODULE,?LINE,self(),Address,Port]),
+			%%{ok,{Address,Port}} = inet:peername(ClientSocket),
+			%%error_logger:info_msg("~p:~p <~p> A client [~p:~p] has closed ~n",[?MODULE,?LINE,self(),Address,Port]),
+			error_logger:info_msg("~p:~p <~p> A client has closed ~n",[?MODULE,?LINE,self()]),
 			gen_tcp:close(ClientSocket);
 		Any ->
 			%% io:format("A client [~p] has occurs error,the reason is ~p ~n",[ClientSocket,Any]),

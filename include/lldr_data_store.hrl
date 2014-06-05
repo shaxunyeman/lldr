@@ -11,3 +11,4 @@
 		string		  %% password of user
 		}).
 
+-define(LLDR_ROOT_PATH,"E:/work/lldr/data").

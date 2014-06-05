@@ -78,7 +78,6 @@
 {
   "command":"createdir",
   "id":"Id",
-  "parent":"Parent",
   "directory":"Directory"
 }
 
