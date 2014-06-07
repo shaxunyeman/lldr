@@ -5,3 +5,6 @@
 *.P
 *.E
 *.dump
+data/
+test/logs
+test/variables-ct@dbliu
