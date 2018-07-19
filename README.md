@@ -1,31 +1,33 @@
-1.build
-	1.1 erl
-	1.2 c(build)
-	1.3 build:start()
-	All objects will be compiled into ebin
+# Build
+
+1. erl
+2. c(build)
+3. build::start()
+
+All objects will be compiled into ebin.
 
 
-2.supervisor	
-					------------
-					| lldr_sup |
-					------------
-						 |
-						 |
-		_______________________________	  
-		|				  |
-		|				  |
- lldr_data_store	lldr_server_sup
-						  |
-						  |
-				  _______________
-				  |				|
-				  |				|
-				echosrv	  lldr_handle_server	
 
-3. How to run lldr
-  3.1 erl -mnesia dir '"E:/work/lldr/mnesia/data"'
-  3.2. start application
-		application:start(lldr).
+# Supervisor
 
-4. How to stop application
-  application:stop(lldr).
+
+
+# How to run lldr
+
+1. erl -mnesia dir "/path"
+
+2. start application
+
+   ```
+   applicaction::start(lldr)
+   ```
+
+3. stop application
+
+   ```
+   application::stop(lldr)
+   ```
+
+   
+
+
