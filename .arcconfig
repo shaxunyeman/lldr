@@ -1,0 +1,8 @@
+{
+  "phabricator.uri" : "http://cr.peersafe.com",
+  "editor": "vim",
+  "base": "git:HEAD^",
+  "arc.land.onto.default": "develop",
+  "arc.land.update.default": "rebase",
+  "history.immutable": false
+}
